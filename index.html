@@ -2,46 +2,34 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Hello Wealthica Power-Up</title>
+<title>Hello Wealthica</title>
 
-<script src="https://unpkg.com/@wealthica/power-up-sdk/dist/power-up-sdk.js"></script>
+<script src="https://unpkg.com/@wealthica/power-up-sdk@latest/dist/power-up-sdk.js"></script>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f9;
-  text-align: center;
-  padding: 40px;
-}
-
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 40px;
-  max-width: 500px;
-  margin: auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-</style>
 </head>
 
 <body>
 
-<div class="card">
-  <h1>Hello World V</h1>
-  <p>This is a Wealthica Power-Up hosted on GitHub Pages.</p>
-  <p id="user"></p>
-</div>
+<h1>Hello Power-Up</h1>
+<div id="status">Loading...</div>
 
 <script>
 
-const powerup = new WealthicaPowerUp();
+window.addEventListener("load", function () {
 
-powerup.onReady((data) => {
-  console.log("Power-Up Loaded", data);
+  if (typeof WealthicaPowerUp === "undefined") {
+    document.getElementById("status").innerText = "SDK failed to load";
+    return;
+  }
 
-  document.getElementById("user").innerText =
-    "Connected to Wealthica account: " + data.user.email;
+  const powerup = new WealthicaPowerUp();
+
+  powerup.onReady(function(data){
+      console.log("PowerUp Ready", data);
+      document.getElementById("status").innerText =
+          "Hello " + data.user.email;
+  });
+
 });
 
 </script>
