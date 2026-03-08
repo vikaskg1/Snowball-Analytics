@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DiviGrowth Pro</title>
-    <!-- 1. Relative path to your local file -->
+    <!-- 1. Path to your local file -->
     <script src="wealthica.js"></script>
     <style>
         :root { --w-blue: #1b6ec2; --bg: #f0f2f5; }
@@ -16,7 +16,7 @@
         .chart-box { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
         .bar { width: 22px; background: #5a96d4; border-radius: 3px 3px 0 0; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px 40px; color: #64748b; font-size: 0.85rem; background: #fcfcfc; border-bottom: 2px solid #edf2f7; }
+        th { text-align: left; padding: 15px 40px; color: #64748b; font-size: 0.85rem; background: #fcfcfc; border-bottom: 2px solid #edf2f7; text-transform: uppercase; }
         td { padding: 14px 40px; border-bottom: 1px solid #f1f5f9; font-size: 1rem; }
         tr:nth-child(even) { background: #f9fbff; }
         .footer { padding: 25px 40px; display: flex; justify-content: space-between; background: #fff; border-top: 1px solid #eee; }
@@ -45,40 +45,40 @@
 </div>
 
 <script>
-    // 2. RECURSIVE CHECK: This is the fix for "Wealthica is not defined"
+    // 2. RECURSIVE CHECK: The definitive fix for "Wealthica is not defined"
     function startApp() {
-        // Look for the Wealthica constructor in the global window
+        // Detect either standard 'Wealthica' or legacy 'WealthicaAddon'
         const W = window.Wealthica || window.WealthicaAddon;
         
         if (!W) {
-            console.log("Library not found yet, retrying in 200ms...");
+            console.log("SDK not ready, retrying in 200ms...");
             setTimeout(startApp, 200);
             return;
         }
 
-        console.log("Library found! Starting handshake...");
+        console.log("Library detected. Starting handshake...");
         const addon = new W();
         
         addon.on('ready', async (data) => {
             try {
-                // Fetch last 1000 transactions
+                // Fetch last 1000 transactions to find income
                 const txs = await addon.api.getTransactions({ limit: 1000 });
                 const divs = {};
                 let grand = 0;
                 const years = { '2020': 0, '2021': 0, '2022': 0, '2023': 0, '2024': 0 };
 
-                txs.filter(t => ['dividend','distribution'].includes(t.type)).forEach(t => {
-                    const s = t.symbol || 'CASH';
+                txs.filter(t => ['dividend','distribution','interest'].includes(t.type)).forEach(t => {
+                    const s = t.symbol || 'OTHER';
                     const y = new Date(t.date).getFullYear();
                     const a = Math.abs(parseFloat(t.amount) || 0);
 
-                    if(!divs[s]) divs[s] = { amt: 0, name: t.description ? t.description.split('-').shift().trim() : 'Unknown' };
+                    if(!divs[s]) divs[s] = { amt: 0, name: t.description ? t.description.split('-').shift().trim() : 'Income' };
                     divs[s].amt += a;
                     grand += a;
                     if(years[y] !== undefined) years[y] += a;
                 });
 
-                // Update Table
+                // Update Table Content
                 const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
                 document.getElementById('rows').innerHTML = sorted.map(s => `
                     <tr><td><strong>${s}</strong></td><td>${divs[s].name}</td><td style="text-align:right; font-weight:600;">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits: 2})}</td></tr>
@@ -86,7 +86,7 @@
                 
                 document.getElementById('grand').innerText = grand.toLocaleString(undefined, {minimumFractionDigits: 2});
                 
-                // Update Bars
+                // Build Growth Bars
                 const max = Math.max(...Object.values(years)) || 1;
                 document.getElementById('chart').innerHTML = Object.keys(years).map(y => `
                     <div class="bar" style="height: ${(years[y]/max)*100}%" title="${y}"></div>
@@ -98,7 +98,7 @@
         });
     }
 
-    // Initialize the check
+    // Start the process
     startApp();
 </script>
 </body>
