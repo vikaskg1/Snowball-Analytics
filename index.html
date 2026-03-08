@@ -38,24 +38,30 @@
         <tbody id="rows"><tr><td colspan="3" style="text-align:center; padding: 60px;">Connecting to Wealthica...</td></tr></tbody>
     </table>
     <div class="footer">
-        <select id="accFilter"><option>All Accounts</option></select>
+        <select><option>All Accounts</option></select>
         <button class="btn" onclick="location.reload(true)">Refresh Data</button>
     </div>
 </div>
+
 <script>
     function boot() {
-        const WealthSDK = window.Wealthica || window.WealthicaAddon;
-        if (!WealthSDK) {
+        const W = window.Wealthica || window.WealthicaAddon;
+        if (!W) {
             setTimeout(boot, 250);
             return;
         }
+
+        // UNIVERSAL HANDSHAKE: Works whether it's a class or an instance
+        let addon;
         try {
-            const addon = new WealthSDK();
+            addon = (typeof W === 'function') ? new W() : W;
+            
             addon.on('ready', async (data) => {
                 const txs = await addon.api.getTransactions({ limit: 1000 });
                 const divs = {};
                 let grand = 0;
                 const years = { '2021': 0, '2022': 0, '2023': 0, '2024': 0 };
+
                 txs.filter(t => ['dividend','distribution'].includes(t.type)).forEach(t => {
                     const s = t.symbol || 'CASH';
                     const y = new Date(t.date).getFullYear();
@@ -65,17 +71,26 @@
                     grand += a;
                     if(years[y] !== undefined) years[y] += a;
                 });
+
                 const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
                 document.getElementById('rows').innerHTML = sorted.map(s => `
                     <tr><td><strong>${s}</strong></td><td style="color:#64748b">${divs[s].name}</td><td style="text-align:right; font-weight:700;">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits: 2})}</td></tr>
                 `).join('');
+                
                 document.getElementById('grand').innerText = grand.toLocaleString(undefined, {minimumFractionDigits: 2});
+                
                 const max = Math.max(...Object.values(years)) || 1;
                 document.getElementById('barChart').innerHTML = Object.keys(years).map(y => `
                     <div class="bar" style="height: ${(years[y]/max)*100}%"><div class="bar-label">${y}</div></div>
                 `).join('');
             });
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.log("Handshake Error: Using backup method...");
+            // Final fallback if the above failed
+            if (W.on) {
+                 W.on('ready', () => { location.reload(); });
+            }
+        }
     }
     boot();
 </script>
