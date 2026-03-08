@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DiviGrowth Pro</title>
-    <!-- ONLY Wealthica and Chart.js are allowed by CSP -->
+    <!-- Wealthica and Chart.js are the ONLY allowed external scripts -->
     <script src="https://wealthica.github.io"></script>
     <script src="https://cdn.jsdelivr.net"></script>
     <style>
@@ -47,14 +47,13 @@
 </div>
 
 <script>
-    // 1. Wait for window to load to ensure Wealthica is defined
+    // FIX: Wait for the library to be defined before calling new Wealthica()
     window.onload = function() {
         if (typeof Wealthica !== "undefined") {
             const addon = new Wealthica();
             
             addon.on('ready', async (data) => {
                 try {
-                    // Fetch real dividend data
                     const txs = await addon.api.getTransactions({ limit: 1000 });
                     const divs = {};
                     let total = 0;
@@ -77,10 +76,10 @@
                     
                     document.getElementById('grand').innerText = total.toLocaleString(undefined, {minimumFractionDigits:2});
                     renderChart(txs);
-                } catch (e) { console.error("API Error:", e); }
+                } catch (e) { console.error("Wealthica Data Error:", e); }
             });
         } else {
-            console.error("Wealthica SDK failed to load. Check your internet or CSP.");
+            console.error("Wealthica SDK failed to load. Check for CSP blocks or Ad-blockers.");
         }
     };
 
