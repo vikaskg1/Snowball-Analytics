@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <title>Snowball-Div</title>
     
-    <!-- 1. INLINE IFRAME RESIZER: Satisfies the dashboard's timeout check instantly -->
+    <!-- 1. DIRECT HANDSHAKE: Tells the Wealthica dashboard we are ready immediately -->
     <script>
         (function() {
+            // This is the exact signal the Wealthica dashboard is looking for
+            // to stop the 5-second timeout error.
             window.iFrameResizer = { targetOrigin: '*' };
-            // Send the exact heartbeat signal Wealthica is waiting for
             window.parent.postMessage('[iFrameSizer]iFrameResizer0:0:0:init', '*');
         })();
     </script>
@@ -53,12 +54,13 @@
 
 <script>
     (function() {
-        // 2. HANDSHAKE: Wait for Wealthica to inject the Addon object
-        const connect = () => {
+        // 2. CONNECTION LOGIC: Wait for Wealthica to send the data via postMessage
+        function connect() {
+            // Find the object injected by the dashboard
             const W = window.Wealthica || window.WealthicaAddon;
             
             if (!W) {
-                // If the object isn't here, it means we need to wait for the parent to push it
+                // If not found, wait and try again
                 setTimeout(connect, 300);
                 return;
             }
@@ -67,18 +69,18 @@
                 const addon = (typeof W === 'function') ? new W() : W;
                 
                 addon.on('ready', async (data) => {
-                    console.log("Handshake Success!");
+                    console.log("Success: Handshake complete!");
                     try {
                         const txs = await addon.api.getTransactions({ limit: 1000 });
                         render(txs);
                     } catch (e) {
-                        document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="padding:40px; color:red; text-align:center;">API Error: Make sure "Read Transactions" is enabled in Wealthica Dev settings.</td></tr>';
+                        document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="padding:40px; color:red; text-align:center;">API Error: Make sure "Read Transactions" is enabled in settings.</td></tr>';
                     }
                 });
             } catch (err) {
                 console.error("Connection error:", err);
             }
-        };
+        }
 
         function render(txs) {
             const divs = {};
@@ -87,10 +89,11 @@
             const curY = new Date().getFullYear();
             for(let i=0; i<4; i++) years[curY-i] = 0;
 
+            // Filter for income (dividends, distributions, interest)
             const filtered = txs.filter(t => ['dividend','distribution','interest'].includes(t.type?.toLowerCase()));
 
             if (!filtered.length) {
-                document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px;">No dividend data found in history.</td></tr>';
+                document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px;">No dividend transactions found.</td></tr>';
                 return;
             }
 
@@ -98,6 +101,7 @@
                 const s = t.symbol || 'OTHER';
                 const a = Math.abs(parseFloat(t.amount) || 0);
                 const y = new Date(t.date).getFullYear();
+
                 if (!divs[s]) divs[s] = { amt: 0, name: t.description ? t.description.split('-').shift().trim() : 'Income' };
                 divs[s].amt += a;
                 grand += a;
