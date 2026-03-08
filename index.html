@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DiviGrowth Pro</title>
-    <!-- ONLY Wealthica and Chart.js are allowed by CSP -->
+    <!-- ONLY Wealthica and Chart.js are allowed -->
     <script src="https://wealthica.github.io"></script>
     <script src="https://cdn.jsdelivr.net"></script>
     <style>
@@ -51,15 +51,15 @@
     
     addon.on('ready', async (data) => {
         try {
-            // Fetch all transactions to build the leaderboard
+            // Fetch all transactions to process dividends
             const txs = await addon.api.getTransactions({ limit: 1000 });
             const divs = {};
             let total = 0;
 
             txs.filter(t => ['dividend','distribution'].includes(t.type)).forEach(t => {
                 const s = t.symbol || 'CASH';
-                // Attempt to get company name from description
-                const name = t.description.split('-')[0].trim();
+                // Attempt to clean up company name from description
+                const name = t.description ? t.description.split('-')[0].trim() : 'Unknown';
                 if(!divs[s]) divs[s] = { amt: 0, name: name };
                 divs[s].amt += Math.abs(t.amount);
                 total += Math.abs(t.amount);
