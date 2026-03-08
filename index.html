@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Wealthica Power-Up Template</title>
+<title>Snowball Dividend Power-Up</title>
 
 <!-- Required for Wealthica iframe resizing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.2/iframeResizer.contentWindow.min.js"></script>
@@ -27,9 +27,7 @@ body {
 }
 
 h1 { margin-top: 0; }
-
 .status { margin-top: 20px; font-weight: bold; }
-
 .portfolio { margin-top: 20px; }
 .portfolio-item { padding: 8px 0; border-bottom: 1px solid #eee; }
 </style>
@@ -38,7 +36,7 @@ h1 { margin-top: 0; }
 <body>
 
 <div class="card">
-  <h1>Wealthica Power-Up Template</h1>
+  <h1>Snowball Dividend Power-Up</h1>
   <div id="status" class="status">Initializing...</div>
 
   <div class="portfolio" id="portfolio">
@@ -47,15 +45,16 @@ h1 { margin-top: 0; }
 </div>
 
 <script>
-// Robust container detection
+// Robust Wealthica container detection
 function waitForAddon() {
   if (window.addon && window.addon.on) {
-    window.addon.on("ready", function(data){
+    // Wealthica container is ready
+    window.addon.on("ready", function(data) {
       console.log("Wealthica ready:", data);
       document.getElementById("status").innerText =
         "Connected to Wealthica successfully";
 
-      // Example dummy portfolio
+      // Dummy portfolio for testing
       const portfolio = [
         {symbol: "AAPL", shares: 10, dividend: 0.92},
         {symbol: "MSFT", shares: 5, dividend: 2.72},
@@ -74,12 +73,14 @@ function waitForAddon() {
       });
     });
   } else {
+    // Retry until Wealthica container is ready
     setTimeout(waitForAddon, 200);
     document.getElementById("status").innerText =
       "Waiting for Wealthica container...";
   }
 }
 
+// Start detection
 waitForAddon();
 </script>
 
