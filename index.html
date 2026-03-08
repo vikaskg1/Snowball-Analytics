@@ -1,50 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Hello World Power-Up</title>
-    <!-- 1. MANDATORY: The iframe-resizer script allows Wealthica to talk to your app -->
-    <script src="https://cdnjs.cloudflare.com"></script>
-    
-    <!-- 2. The Wealthica Power-Up SDK -->
-    <script src="https://wealthica.github.io"></script>
-    
-    <style>
-        body { font-family: sans-serif; padding: 20px; background: #fff; }
-        .box { border: 1px solid #eee; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    </style>
+<meta charset="UTF-8">
+<title>Hello Wealthica Power-Up</title>
+
+<script src="https://wealthica.github.io/powerups-sdk/powerup.js"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
+  text-align: center;
+  padding: 40px;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 40px;
+  max-width: 500px;
+  margin: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+</style>
 </head>
+
 <body>
-    <div class="box">
-        <h1 id="title">Initializing...</h1>
-        <p id="msg">Waiting for Wealthica connection...</p>
-    </div>
 
-    <script>
-        // Ensure scripts are loaded before initializing
-        window.onload = function() {
-            if (typeof Wealthica !== 'undefined') {
-                try {
-                    // Create the addon instance
-                    const addon = new Wealthica();
+<div class="card">
+  <h1>Hello World 👋</h1>
+  <p>This is a Wealthica Power-Up hosted on GitHub Pages.</p>
+  <p id="user"></p>
+</div>
 
-                    // Listen for the 'ready' event
-                    addon.on('ready', function(data) {
-                        console.log("Connected to Wealthica!", data);
-                        
-                        document.getElementById('title').innerText = "Hello World!";
-                        const name = data.user.name || "Wealthica User";
-                        document.getElementById('msg').innerHTML = 
-                            `Welcome, <strong>${name}</strong>. Your Power-Up is now linked!`;
-                    });
-                } catch (e) {
-                    console.error("Initialization failed:", e);
-                    document.getElementById('title').innerText = "Load Error";
-                }
-            } else {
-                document.getElementById('title').innerText = "SDK Missing";
-            }
-        };
-    </script>
+<script>
+
+const powerup = new WealthicaPowerUp();
+
+powerup.onReady((data) => {
+  console.log("Power-Up Loaded", data);
+
+  document.getElementById("user").innerText =
+    "Connected to Wealthica account: " + data.user.email;
+});
+
+</script>
+
 </body>
 </html>
