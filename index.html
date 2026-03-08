@@ -1,47 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Wealthica Power-Up</title>
-    <!-- 1. MANDATORY: Required for the Wealthica parent app to communicate with this iframe -->
-    <script src="https://cdnjs.cloudflare.com"></script>
-    
-    <!-- 2. The Wealthica Power-Up SDK -->
-    <script src="https://wealthica.github.io"></script>
-    
-    <style>
-        body { font-family: -apple-system, sans-serif; padding: 20px; color: #333; }
-        .container { border: 1px solid #eee; padding: 20px; border-radius: 8px; }
-    </style>
+<meta charset="utf-8">
+<title>Hello Wealthica</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.2/iframeResizer.contentWindow.min.js"></script>
+
+<style>
+body{
+  font-family: Arial;
+  padding:40px;
+}
+</style>
+
 </head>
+
 <body>
-    <div class="container">
-        <h1 id="status">Connecting...</h1>
-        <p id="user-info"></p>
-    </div>
 
-    <script>
-        // Use window.onload to ensure Wealthica script is fully loaded
-        window.onload = function() {
-            if (typeof Wealthica !== 'undefined') {
-                try {
-                    // Fix: Use 'new Wealthica()' - 'WealthicaPowerUp' is not a valid constructor
-                    const addon = new Wealthica();
+<h1>Hello Wealthica Power-Up 👋</h1>
+<div id="status">Waiting for container...</div>
 
-                    addon.on('ready', function(data) {
-                        document.getElementById('status').innerText = "Hello World!";
-                        const name = data.user.name || "Wealthica User";
-                        document.getElementById('user-info').innerText = `Welcome, ${name}! Your Power-Up is active.`;
-                        
-                        console.log("Power-Up ready with data:", data);
-                    });
-                } catch (err) {
-                    document.getElementById('status').innerText = "Init Error: " + err.message;
-                }
-            } else {
-                document.getElementById('status').innerText = "Error: SDK not loaded.";
-            }
-        };
-    </script>
+<script>
+
+function init(){
+
+  if(!window.addon){
+      document.getElementById("status").innerText =
+        "Addon container not available";
+      return;
+  }
+
+  window.addon.on("ready", function(data){
+
+      console.log("Addon Ready", data);
+
+      document.getElementById("status").innerText =
+        "Connected to Wealthica";
+
+  });
+
+}
+
+init();
+
+</script>
+
 </body>
 </html>
