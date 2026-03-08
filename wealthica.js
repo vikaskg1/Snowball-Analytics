@@ -1,4 +1,4 @@
-var Addon;
+var Addon; 
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
