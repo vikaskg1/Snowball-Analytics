@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Fixed CSP to allow OneSignal subdomains and Wealthica assets -->
     <meta http-equiv="Content-Security-Policy" content="connect-src 'self' blob: *.wealthica.com wealthica.com https://addons.wealthica.com https://connect.vezgo.com connect.wealthica.com cognito-idp.us-east-1.amazonaws.com cognito-idp.ca-central-1.amazonaws.com api-js.mixpanel.com wss://ws-mt1.pusher.com sockjs.pusher.com api.recurly.com *.google-analytics.com *.onesignal.com onesignal.com *.wisepops.com *.doubleclick.net sessions.bugsnag.com app.getwisp.co desk.wealthica.com stockchase.com *.google.com *.google.ae *.google.ca;">
     <title>Snowball-Div</title>
     <script src="bridge.js"></script>
@@ -48,50 +47,72 @@
 <script>
     function boot() {
         const W = window.Wealthica || window.WealthicaAddon;
+        
         if (!W) {
-            setTimeout(boot, 250);
+            console.log("Waiting for Wealthica...");
+            setTimeout(boot, 500); 
             return;
         }
 
-        let addon;
         try {
-            addon = (typeof W === 'function') ? new W() : W;
-            
+            const addon = (typeof W === 'function') ? new W() : W;
+
             addon.on('ready', async (data) => {
-                const txs = await addon.api.getTransactions({ limit: 1000 });
-                const divs = {};
-                let grand = 0;
-                const years = { '2021': 0, '2022': 0, '2023': 0, '2024': 0 };
-
-                txs.filter(t => ['dividend','distribution'].includes(t.type)).forEach(t => {
-                    const s = t.symbol || 'CASH';
-                    const y = new Date(t.date).getFullYear();
-                    const a = Math.abs(parseFloat(t.amount) || 0);
-                    if(!divs[s]) divs[s] = { amt: 0, name: t.description ? t.description.split('-').shift().trim() : 'Income' };
-                    divs[s].amt += a;
-                    grand += a;
-                    if(years[y] !== undefined) years[y] += a;
-                });
-
-                const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
-                document.getElementById('rows').innerHTML = sorted.map(s => `
-                    <tr><td><strong>${s}</strong></td><td style="color:#64748b">${divs[s].name}</td><td style="text-align:right; font-weight:700;">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits: 2})}</td></tr>
-                `).join('');
-                
-                document.getElementById('grand').innerText = grand.toLocaleString(undefined, {minimumFractionDigits: 2});
-                
-                const max = Math.max(...Object.values(years)) || 1;
-                document.getElementById('barChart').innerHTML = Object.keys(years).map(y => `
-                    <div class="bar" style="height: ${(years[y]/max)*100}%"><div class="bar-label">${y}</div></div>
-                `).join('');
+                console.log("Wealthica Ready!");
+                try {
+                    const txs = await addon.api.getTransactions({ limit: 1000 });
+                    renderData(txs);
+                } catch (apiErr) {
+                    console.error("API Error:", apiErr);
+                    document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="text-align:center; color:red; padding:40px;">Error loading transactions. Please check permissions.</td></tr>';
+                }
             });
         } catch (e) {
-            console.log("Handshake Error: Using backup method...");
-            if (W.on) {
-                 W.on('ready', () => { location.reload(); });
-            }
+            console.warn("Primary handshake failed, trying backup...");
+            window.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'ready') {
+                    location.reload();
+                }
+            });
         }
     }
+
+    function renderData(txs) {
+        const divs = {};
+        let grand = 0;
+        const currentYear = new Date().getFullYear();
+        // Dynamically set years for the chart
+        const years = { [currentYear-3]: 0, [currentYear-2]: 0, [currentYear-1]: 0, [currentYear]: 0 };
+
+        txs.filter(t => ['dividend','distribution'].includes(t.type)).forEach(t => {
+            const s = t.symbol || 'CASH';
+            const y = new Date(t.date).getFullYear();
+            const a = Math.abs(parseFloat(t.amount) || 0);
+            
+            if(!divs[s]) {
+                divs[s] = { 
+                    amt: 0, 
+                    name: t.description ? t.description.split('-').shift().trim() : 'Income' 
+                };
+            }
+            divs[s].amt += a;
+            grand += a;
+            if(years[y] !== undefined) years[y] += a;
+        });
+
+        const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
+        document.getElementById('rows').innerHTML = sorted.length ? sorted.map(s => `
+            <tr><td><strong>${s}</strong></td><td style="color:#64748b">${divs[s].name}</td><td style="text-align:right; font-weight:700;">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits: 2})}</td></tr>
+        `).join('') : '<tr><td colspan="3" style="text-align:center; padding:40px;">No dividends found in the last 1000 transactions.</td></tr>';
+        
+        document.getElementById('grand').innerText = grand.toLocaleString(undefined, {minimumFractionDigits: 2});
+        
+        const max = Math.max(...Object.values(years)) || 1;
+        document.getElementById('barChart').innerHTML = Object.keys(years).map(y => `
+            <div class="bar" style="height: ${(years[y]/max)*100}%"><div class="bar-label">${y}</div></div>
+        `).join('');
+    }
+
     boot();
 </script>
 </body>
