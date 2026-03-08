@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Snowball-Div</title>
-    <!-- Use the official CDN SDK - Wealthica allows this specific domain -->
+    
+    <!-- LOAD SDKs VIA HTTPS (Wealthica allows these) -->
     <script src="https://unpkg.com"></script>
     <script src="https://cdnjs.cloudflare.com"></script>
+
     <style>
         :root { --w-blue: #1b6ec2; --bg: #f0f2f5; --green: #28a745; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 20px; margin: 0; }
@@ -26,7 +28,7 @@
 </head>
 <body>
 <div class="card">
-    <div class="header">Total Dividends by Symbol</div>
+    <div class="header">Total Dividends by Symbol-v</div>
     <div class="hero">
         <div>
             <div style="color:#64748b; font-size:1rem; margin-bottom:5px;">Total Portfolio Dividends</div>
@@ -46,63 +48,77 @@
 
 <script>
     (function() {
-        const W = window.Wealthica || window.WealthicaAddon;
-        
-        if (!W) {
-            console.log("Waiting for Wealthica SDK...");
-            setTimeout(arguments.callee, 250);
-            return;
-        }
-
-        const addon = new W();
-
-        addon.on('ready', async (data) => {
-            console.log("Handshake Success!");
-            try {
-                // Fetch transactions - limit 1000 for speed
-                const txs = await addon.api.getTransactions({ limit: 1000 });
-                render(txs);
-            } catch (err) {
-                console.error("API error:", err);
-                document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="padding:40px; color:red; text-align:center;">API Error: Please check permissions.</td></tr>';
+        const boot = () => {
+            // Check for local SDK only (avoiding window.parent access)
+            const W = window.Wealthica || window.WealthicaAddon;
+            
+            if (!W) {
+                setTimeout(boot, 250);
+                return;
             }
-        });
 
-        function render(txs) {
+            const addon = new W();
+
+            addon.on('ready', async (data) => {
+                console.log("Snowball-Div: Addon Ready");
+                try {
+                    const txs = await addon.api.getTransactions({ limit: 1000 });
+                    renderData(txs);
+                } catch (err) {
+                    console.error("Snowball-Div: API Error", err);
+                    document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="padding:40px; color:red; text-align:center;">Error: Check API permissions.</td></tr>';
+                }
+            });
+        };
+
+        function renderData(txs) {
             const divs = {};
-            let grand = 0;
+            let grandTotal = 0;
             const years = {};
-            const curY = new Date().getFullYear();
-            for(let i=0; i<4; i++) years[curY-i] = 0;
+            const currentYear = new Date().getFullYear();
+            for(let i=0; i<4; i++) years[currentYear - i] = 0;
 
             const filtered = txs.filter(t => ['dividend','distribution','interest'].includes(t.type?.toLowerCase()));
 
-            if (!filtered.length) {
+            if (filtered.length === 0) {
                 document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px;">No dividend data found.</td></tr>';
                 return;
             }
 
             filtered.forEach(t => {
-                const s = t.symbol || 'OTHER';
-                const a = Math.abs(parseFloat(t.amount) || 0);
-                const y = new Date(t.date).getFullYear();
-                if (!divs[s]) divs[s] = { amt: 0, name: t.description ? t.description.split('-').shift().trim() : 'Income' };
-                divs[s].amt += a;
-                grand += a;
-                if (years[y] !== undefined) years[y] += a;
+                const symbol = t.symbol || 'CASH';
+                const amount = Math.abs(parseFloat(t.amount) || 0);
+                const year = new Date(t.date).getFullYear();
+
+                if (!divs[symbol]) {
+                    divs[symbol] = { 
+                        amt: 0, 
+                        name: t.description ? t.description.split('-').shift().trim() : 'Income' 
+                    };
+                }
+                divs[symbol].amt += amount;
+                grandTotal += amount;
+                if (years[year] !== undefined) years[year] += amount;
             });
 
             const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
             document.getElementById('rows').innerHTML = sorted.map(s => `
-                <tr><td><strong>${s}</strong></td><td style="color:#64748b">${divs[s].name}</td><td style="text-align:right; font-weight:700;">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits: 2})}</td></tr>
+                <tr>
+                    <td><strong>${s}</strong></td>
+                    <td style="color:#64748b">${divs[s].name}</td>
+                    <td style="text-align:right; font-weight:700;">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                </tr>
             `).join('');
             
-            document.getElementById('grand').innerText = grand.toLocaleString(undefined, {minimumFractionDigits: 2});
-            const max = Math.max(...Object.values(years)) || 1;
+            document.getElementById('grand').innerText = grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2});
+            
+            const maxVal = Math.max(...Object.values(years)) || 1;
             document.getElementById('barChart').innerHTML = Object.keys(years).reverse().map(y => `
-                <div class="bar" style="height: ${(years[y]/max)*100}%"><div class="bar-label">${y}</div></div>
+                <div class="bar" style="height: ${(years[y]/maxVal)*100}%"><div class="bar-label">${y}</div></div>
             `).join('');
         }
+
+        boot();
     })();
 </script>
 </body>
