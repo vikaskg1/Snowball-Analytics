@@ -3,85 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <title>Snowball Dividend Power-Up</title>
-
-<!-- Required for Wealthica iframe resizing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.2/iframeResizer.contentWindow.min.js"></script>
-
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f9;
-  margin: 0;
-  padding: 40px;
-  display: flex;
-  justify-content: center;
-}
-
-.card {
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  max-width: 600px;
-  width: 100%;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-h1 { margin-top: 0; }
-.status { margin-top: 20px; font-weight: bold; }
-.portfolio { margin-top: 20px; }
-.portfolio-item { padding: 8px 0; border-bottom: 1px solid #eee; }
+body { font-family: Arial; background:#f4f6f9; padding:40px; display:flex; justify-content:center;}
+.card { background:#fff; padding:30px; border-radius:12px; max-width:600px; width:100%; box-shadow:0 10px 25px rgba(0,0,0,0.1);}
+h1{margin-top:0;}
+.status{margin-top:20px; font-weight:bold;}
+.portfolio{margin-top:20px;}
+.portfolio-item{padding:8px 0; border-bottom:1px solid #eee;}
 </style>
-
 </head>
 <body>
 
 <div class="card">
-  <h1>Snowball Dividend Power-Up</h1>
-  <div id="status" class="status">Initializing...</div>
-
-  <div class="portfolio" id="portfolio">
-    <!-- Portfolio items will appear here -->
-  </div>
+<h1>Snowball Dividend</h1>
+<div id="status" class="status">Initializing...</div>
+<div class="portfolio" id="portfolio"></div>
 </div>
 
 <script>
-// Robust Wealthica container detection
-function waitForAddon() {
-  if (window.addon && window.addon.on) {
-    // Wealthica container is ready
-    window.addon.on("ready", function(data) {
-      console.log("Wealthica ready:", data);
-      document.getElementById("status").innerText =
-        "Connected to Wealthica successfully";
+/**
+ * Initialize Wealthica add-on
+ */
+function initWealthicaAddon(){
+  if(window.addon && window.addon.init){
+    // Initialize the add-on (required by Wealthica)
+    window.addon.init();
 
-      // Dummy portfolio for testing
+    window.addon.on('ready', function(data){
+      document.getElementById("status").innerText = "Connected to Wealthica successfully";
+
+      // Dummy portfolio
       const portfolio = [
-        {symbol: "AAPL", shares: 10, dividend: 0.92},
-        {symbol: "MSFT", shares: 5, dividend: 2.72},
-        {symbol: "KO", shares: 20, dividend: 0.44}
+        {symbol:"AAPL", shares:10, dividend:0.92},
+        {symbol:"MSFT", shares:5, dividend:2.72},
+        {symbol:"KO", shares:20, dividend:0.44}
       ];
 
       const portfolioDiv = document.getElementById("portfolio");
       portfolioDiv.innerHTML = "<h3>Portfolio (dummy)</h3>";
-
-      portfolio.forEach(item => {
+      portfolio.forEach(item=>{
         const el = document.createElement("div");
-        el.className = "portfolio-item";
-        const annualDividend = (item.shares * item.dividend).toFixed(2);
-        el.innerText = `${item.symbol}: ${item.shares} shares → Annual Dividend: $${annualDividend}`;
+        el.className="portfolio-item";
+        el.innerText=`${item.symbol}: ${item.shares} shares → Annual Dividend: $${(item.shares*item.dividend).toFixed(2)}`;
         portfolioDiv.appendChild(el);
       });
     });
   } else {
-    // Retry until Wealthica container is ready
-    setTimeout(waitForAddon, 200);
-    document.getElementById("status").innerText =
-      "Waiting for Wealthica container...";
+    setTimeout(initWealthicaAddon, 200);
+    document.getElementById("status").innerText = "Waiting for Wealthica container...";
   }
 }
 
-// Start detection
-waitForAddon();
+initWealthicaAddon();
 </script>
 
 </body>
