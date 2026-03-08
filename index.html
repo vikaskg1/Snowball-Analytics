@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DiviGrowth Pro</title>
-    <!-- Wealthica and Chart.js are the ONLY allowed external scripts -->
+    <!-- ONLY whitelisted scripts allowed by Wealthica CSP -->
     <script src="https://wealthica.github.io"></script>
     <script src="https://cdn.jsdelivr.net"></script>
     <style>
@@ -47,13 +47,14 @@
 </div>
 
 <script>
-    // FIX: Wait for the library to be defined before calling new Wealthica()
+    // 1. Wait for window load to ensure Wealthica is defined
     window.onload = function() {
         if (typeof Wealthica !== "undefined") {
             const addon = new Wealthica();
             
             addon.on('ready', async (data) => {
                 try {
+                    // Fetch real transaction history
                     const txs = await addon.api.getTransactions({ limit: 1000 });
                     const divs = {};
                     let total = 0;
@@ -62,8 +63,8 @@
                         const s = t.symbol || 'CASH';
                         const name = t.description ? t.description.split('-')[0].trim() : 'Unknown';
                         if(!divs[s]) divs[s] = { amt: 0, name: name };
-                        divs[s].amt += Math.abs(t.amount);
-                        total += Math.abs(t.amount);
+                        divs[s].amt += Math.abs(parseFloat(t.amount) || 0);
+                        total += Math.abs(parseFloat(t.amount) || 0);
                     });
 
                     const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
@@ -76,10 +77,10 @@
                     
                     document.getElementById('grand').innerText = total.toLocaleString(undefined, {minimumFractionDigits:2});
                     renderChart(txs);
-                } catch (e) { console.error("Wealthica Data Error:", e); }
+                } catch (e) { console.error("Wealthica API Error:", e); }
             });
         } else {
-            console.error("Wealthica SDK failed to load. Check for CSP blocks or Ad-blockers.");
+            console.error("Wealthica SDK failed to load. Check for CSP blocks.");
         }
     };
 
@@ -90,7 +91,7 @@
 
         new Chart(document.getElementById('barChart'), {
             type: 'bar',
-            data: { labels: years, datasets: [{ data, backgroundColor: '#2172d2', borderRadius: 4 }] },
+            data: { labels: years, datasets: [{ data, backgroundColor: '#4a90e2', borderRadius: 4 }] },
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
     }
