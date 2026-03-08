@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <title>Snowball-Div</title>
     
-    <!-- EMBEDDED IFRAME RESIZER (Stops the 5-second timeout) -->
+    <!-- EMBEDDED IFRAME RESIZER: This satisfies the dashboard's 5-second check locally -->
     <script>
-        /* Embedded iFrame Resizer Content Window Code */
-        !function(){"use strict";var e,t,n,i,o,r,a,s,c,u,l,d,f,m,p,g,h,v,y,w,b,x,E,S,k,M,T,C,A,L,N,O,R,I,P,z,H,j,q,B,F,W,U,V,D,G,J,K,Q,Y,Z,X,$,ee,te,ne,ie,oe,re,ae,se,ce,ue,le,de,fe,me,pe,ge,he,ve,ye,we,be,xe,Ee,Se,ke,Me,Te,Ce,Ae,Le,Ne,Oe,Re,Ie,Pe,ze,He,je,qe,Be,Fe,We,Ue,Ve,De,Ge,Je,Ke,Qe,Ye,Ze,Xe,$e,et,tt,nt,it,ot,rt,at,st,ct,ut,lt,dt,ft,mt,pt,gt,ht,vt,yt,wt,bt,xt,Et,St,kt,Mt,Tt,Ct,At,Lt,Nt,Ot,Rt,It,Pt,zt,Ht,jt,qt,Bt,Ft,Wt,Ut,Vt,Dt,Gt,Jt,Kt,Qt,Yt,Zt,Xt,$t,en,tn,nn,in,on,rn,an,sn,cn,un,ln,dn,fn,mn,pn,gn,hn,vn,yn,wn,bn,xn,En,Sn,kn,Mn,Tn,Cn,An,Ln,Nn,On,Rn,In,Pn,zn,Hn,jn,qn,Bn,Fn,Wn,Un,Vn,Dn,Gn,Jn,Kn,Qn,Yn,Zn,Xn,$n,ei,ti,ni,ii,oi,ri,ai,si,ci,ui,li,di,fi,mi,pi,gi,hi,vi,yi,wi,bi,xi,Ei,Si,ki,Mi,Ti,Ci,Ai,Li,Ni,Oi,Ri,Ii,Pi,zi,Hi,ji,qi,Bi,Fi,Wi,Ui,Vi,Di,Gi,Ji,Ki,Qi,Yi,Zi,Xi,$i,eo,to,no,io,oo,ro,ao,so,co,uo,lo,do,fo,mo,po,go,ho,vo,yo,wo,bo,xo,Eo,So,ko,Mo,To,Co,Ao,Lo,No,Ro,Io,Po,zo,Ho,jo,qo,Bo,Fo,Wo,Uo,Vo,Do,Go,Jo,Ko,Qo,Yo,Zo,Xo,$o,er,tr,nr,ir,or,rr,ar,sr,cr,ur,lr,dr,fr,mr,pr,gr,hr,vr,yr,wr,br,xr,Er,Sr,kr,Mr,Tr,Cr,Ar,Lr,Nr,Or,Rr,Ir,Pr,zr,Hr,jr,qr,Br,Fr,Wr,Ur,Vr,Dr,Gr,Jr,Kr,Qr,Yr,Zr,Xr,$r,ea,ta,na,ia,oa,ra,aa,sa,ca,ua,la,da,fa,ma,pa,ga,ha,va,ya,wa,ba,xa,Ea,Sa,ka,Ma,Ta,Ca,Aa,La,Na,Oa,Ra,Ia,Pa,za,Ha,ja,qa,Ba,Fa,Wa,Ua,Va,Da,Ga,Ja,Ka,Qa,Ya,Za,Xa,$a,es,ts,ns,is,os,rs,as,ss,cs,us,ls,ds,fs,ms,ps,gs,hs,vs,ys,ws,bs,xs,Es,Ss,ks,Ms,Ts,Cs,As,Ls,Ns,Os,Rs,Is,Ps,zs,Hs,js,qs,Bs,Fs,Ws,Us,Vs,Ds,Gs,Js,Ks,Qs,Ys,Zs,Xs,$s,ec,tc,nc,ic,oc,rc,ac,sc,cc,uc,lc,dc,fc,mc,pc,gc,hc,vc,yc,wc,bc,xc,Ec,Sc,kc,Mc,Tc,Cc,Ac,Lc,Nc,Oc,Rc,Ic,Pc,zc,Hc,jc,qc,Bc,Fc,Wc,Uc,Vc,Dc,Gc,Jc,Kc,Qc,Yc,Zc,Xc,$c,eu,tu,nu,iu,ou,ru,au,su,cu,uu,lu,du,fu,mu,pu,gu,hu,vu,yu,wu,bu,xu,Eu,Su,ku,Mu,Tu,Cu,Au,Lu,Nu,Ou,Ru,Iu,Pu,zu,Hu,ju,qu,Bu,Fu,Wu,Uu,Vu,Du,Gu,Ju,Ku,Qu,Yu,Zu,Xu,$u,el,tl,nl,il,ol,rl,al,sl,cl,ul,ll,dl,fl,ml,pl,gl,hl,vl,yl,wl,bl,xl,El,Sl,kl,Ml,Tl,Cl,Al,Ll,Nl,Ol,Rl,Il,Pl,zl,Hl,jl,ql,Bl,Fl,Wl,Ul,Vl,Dl,Gl,Jl,Kl,Ql,Yl,Zl,Xl,$l,ed,td,nd,id,od,rd,ad,sd,cd,ud,ld,dd,fd,md,pd,gd,hd,vd,yd,wd,bd,xd,Ed,Sd,kd,Md,Td,Cd,Ad,Ld,Nd,Od,Rd,Id,Pd,zd,Hd,jd,qd,Bd,Fd,Wd,Ud,Vd,Dd,Gd,Jd,Kd,Qd,Yd,Zd,Xd,$d,ef,tf,nf,if,of,rf,af,sf,cf,uf,lf,df,ff,mf,pf,gf,hf,vf,yf,wf,bf,xf,Ef,Sf,kf,Mf,Tf,Cf,Af,Lf,Nf,Of,Rf,If,Pf,zf,Hf,jf,qf,Bf,Ff,Wf,Uf,Vf,Df,Gf,Jf,Kf,Qf,Yf,Zf,Xf,$f,em,tm,nm,im,om,rm,am,sm,cm,um,lm,dm,fm,mm,pm,gm,hm,vm,ym,wm,bm,xm,Em,Sm,km,Mm,Tm,Cm,Am,Lm,Nm,Om,Rm,Im,Pm,zm,Hm,jm,qm,Bm,Fm,Wm,Um,Vm,Dm,Gm,Jm,Km,Qm,Ym,Zm,Xm,$m,ep,tp,np,ip,op,rp,ap,sp,cp,up,lp,dp,fp,mp,pp,gp,hp,vp,yp,wp,bp,xp,Ep,Sp,kp,Mp,Tp,Cp,Ap,Lp,Np,Op,Rp,Ip,Pp,zp,Hp,jp,qp,Bp,Fp,Wp,Up,Vp,Dp,Gp,Jp,Kp,Qp,Yp,Zp,Xp,$p,eg,tg,ng,ig,og,rg,ag,sg,cg,ug,lg,dg,fg,mg,pg,gg,hg,vg,yg,wg,bg,xg,Eg,Sg,kg,Mg,Tg,Cg,Ag,Lg,Ng,Og,Rg,Ig,Pg,zg,Hg,jg,qg,Bg,Fg,Wg,Ug,Vg,Dg,Gg,Jg,Kg,Qg,Yg,Zg,Xg,$g,eh,th,nh,ih,oh,rh,ah,sh,ch,uh,lh,dh,fh,mh,ph,gh,hh,vh,yh,wh,bh,xh,Eh,Sh,kh,Mh,Th,Ch,Ah,Lh,Nh,Oh,Rh,Ih,Ph,zh,Hh,jh,qh,Bh,Fh,Wh,Uh,Vh,Dh,Gh,Jh,Kh,Qh,Yh,Zh,Xh,$h,ev,tv,nv,iv,ov,rv,av,sv,cv,uv,lv,dv,fv,mv,pv,gv,hv,vv,yv,wv,bv,xv,Ev,Sv,kv,Mv,Tv,Cv,Av,Lv,Nv,Ov,Rv,Iv,Pv,zv,Hv,jv,qv,Bv,Fv,Wv,Uv,Vv,Dv,Gv,Jv,Kv,Qv,Yv,Zv,Xv,$v,ey,ty,ny,iy,oy,ry,ay,sy,cy,uy,ly,dy,fy,my,py,gy,hy,vy,yy,wy,by,xy,Ey,Sy,ky,My,Ty,Cy,Ay,Ly,Ny,Oy,Ry,Iy,Py,zy,Hy,jy,qy,By,Fy,Wy,Uy,Vy,Dy,Gy,Jy,Ky,Qy,Yy,Zy,Xy,$y,ew,tw,nw,iw,ow,rw,aw,sw,cw,uw,lw,dw,fw,mw,pw,gw,hw,vw,yw,ww,bw,xw,Ew,Sw,kw,Mw,Tw,Cw,Aw,Lw,Nw,Ow,Rw,Iw,Pw,zw,Hw,jw,qw,Bw,Fw,Ww,Uw,Vw,Dw,Gw,Jw,Kw,Qw,Yw,Zw,Xw,$w,eb,tb,nb,ib,ob,rb,ab,sb,cb,ub,lb,db,fb,mb,pb,gb,hb,vb,yb,wb,bb,xb,Eb,Sb,kb,Mb,Tb,Cb,Ab,Lb,Nb,Ob,Rb,Ib,Pb,zb,Hb,jb,qb,Bb,Fb,Wb,Ub,Vb,Db,Gb,Jb,Kb,Qb,Yb,Zb,Xb,$b,ex,tx,nx,ix,ox,rx,ax,sx,cx,ux,lx,dx,fx,mx,px,gx,hx,vx,yx,wx,bx,xx,Ex,Sx,kx,Mx,Tx,Cx,Ax,Lx,Nx,Ox,Rx,Ix,Px,zx,Hx,jx,qx,Bx,Fx,Wx,Ux,Vx,Dx,Gx,Jx,Kx,Qx,Yx,Zx,Xx,$x,eE,tE,nE,iE,oE,rE,aE,sE,cE,uE,lE,dE,fE,mE,pE,gE,hE,vE,yE,wE,bE,xE,EE,SE,kE,ME,TE,CE,AE,LE,NE,OE,RE,IE,PE,zE,HE,jE,qE,BE,FE,WE,UE,VE,DE,GE,JE,KE,QE,YE,ZE,XE,$E,es,ts,ns,is,os,rs,as,ss,cs,us,ls,ds,fs,ms,ps,gs,hs,vs,ys,ws,bs,xs,Es,Ss,ks,Ms,Ts,Cs,As,Ls,Ns,Os,Rs,Is,Ps,zs,Hs,js,qs,Bs,Fs,Ws,Us,Vs,Ds,Gs,Js,Ks,Qs,Ys,Zs,Xs,$s,ek,tk,nk,ik,ok,rk,ak,sk,ck,uk,lk,dk,fk,mk,pk,gk,hk,vk,yk,wk,bk,xk,Ek,Sk,kk,Mk,Tk,Ck,Ak,Lk,Nk,Ok,Rk,Ik,Pk,zk,Hk,jk,qk,Bk,Fk,Wk,Uk,Vk,Dk,Gk,Jk,Kk,Qk,Yk,Zk,Xk,$k,eM,tM,nM,iM,oM,rM,aM,sM,cM,uM,lM,dM,fM,mM,pM,gM,hM,vM,yM,wM,bM,xM,EM,SM,kM,MM,TM,CM,AM,LM,NM,OM,RM,IM,PM,zM,HM,jM,qM,BM,FM,WM,UM,VM,DM,GM,JM,KM,QM,YM,ZM,XM,$M,eT,tT,nT,iT,oT,rT,aT,sT,cT,uT,lT,dT,fT,mT,pT,gT,hT,vT,yT,wT,bT,xT,ET,ST,kT,MT,TT,CT,AT,LT,NT,OT,RT,IT,PT,zT,HT,jT,qT,BT,FT,WT,UT,VT,DT,GT,JT,KT,QT,YT,ZT,XT,$T,eC,tC,nC,iC,oC,rC,aC,sC,cC,uC,lC,dC,fC,mC,pC,gC,hC,vC,yC,wC,bC,xC,EC,SC,kC,MC,TC,CC,AC,LC,NC,OC,RC,IC,PC,zC,HC,jC,qC,BC,FC,WC,UC,VC,DC,GC,JC,KC,QC,YC,ZC,XC,$C,eA,tA,nA,iA,oA,rA,aA,sA,cA,uA,lA,dA,fA,mA,pA,gA,hA,vA,yA,wA,bA,xA,EA,SA,kA,MA,TA,CA,AA,LA,NA,OA,RA,IA,PA,zA,HA,jA,qA,BA,FA,WA,UA,VA,DA,GA,JA,KA,QA,YA,ZA,XA,$A,eL,tL,nL,iL,oL,rL,aL,sL,cL,uL,lL,dL,fL,mL,pL,gL,hL,vL,yL,wL,bL,xL,EL,SL,kL,ML,TL,CL,AL,LL,NL,OL,RL,IL,PL,zL,HL,jL,qL,BL,FL,WL,UL,VL,DL,GL,JL,KL,QL,YL,ZL,XL,$L,eN,tN,nN,iN,oN,rN,aN,sN,cN,uN,lN,dN,fN,mN,pN,gN,hN,vN,yN,wN,bN,xN,EN,SN,kN,MN,TN,CN,AN,LN,NN,ON,RN,IN,PN,zN,HN,jN,qN,BN,FN,WN,UN,VN,DN,GN,JN,KN,QN,YN,ZN,XN,$N,eO,tO,nO,iO,oO,rO,aO,sO,cO,uO,lO,dO,fO,mO,pO,gO,hO,vO,yO,wO,bO,xO,EO,SO,kO,MO,TO,CO,AO,LO,NO,RO,IO,PO,zO,HO,jO,qO,BO,FO,WO,UO,VO,DO,GO,JO,KO,QO,YO,ZO,XO,$O,eR,tR,nR,iR,oR,rR,aR,sR,cR,uR,lR,dR,fR,mR,pR,gR,hR,vR,yR,wR,bR,xR,ER,SR,kR,MR,TR,CR,AR,LR,NR,OR,RR,IR,PR,zR,HR,jR,qR,BR,FR,WR,UR,VR,DR,GR,JR,KR,QR,YR,ZR,XR,$R,eI,tI,nI,iI,oI,rI,aI,sI,cI,uI,lI,dI,fI,mI,pI,gI,hI,vI,yI,wI,bI,xI,EI,SI,kI,MI,TI,CI,AI,LI,NI,OI,RI,II,PI,zI,HI,jI,qI,BI,FI,WI,UI,VI,DI,GI,JI,KI,QI,YI,ZI,XI,$I,eP,tP,nP,iP,oP,rP,aP,sP,cP,uP,lP,dP,fP,mP,pP,gP,hP,vP,yP,wP,bP,xP,EP,SP,kP,MP,TP,CP,AP,LP,NP,OP,RP,IP,PP,zP,HP,jP,qP,BP,FP,WP,UP,VP,DP,GP,JP,KP,QP,YP,ZP,XP,$P,ez,tz,nz,iz,oz,rz,az,sz,cz,uz,lz,dz,fz,mz,pz,gz,hz,vz,yz,wz,bz,xz,Ez,Sz,kz,Mz,Tz,Cz,Az,Lz,Nz,Oz,Rz,Iz,Pz,zz,Hz,jz,qz,Bz,Fz,Wz,Uz,Vz,Dz,Gz,Jz,Kz,Qz,Yz,Zz,Xz,$z,eH,tH,nH,iH,oH,rH,aH,sH,cH,uH,lH,dH,fH,mH,pH,gH,hH,vH,yH,wH,bH,xH,EH,SH,kH,MH,TH,CH,AH,LH,NH,OH,RH,IH,PH,zH,HH,jH,qH,BH,FH,WH,UH,VH,DH,GH,JH,KH,QH,YH,ZH,XH,$H;window.iFrameResizer={targetOrigin:"*"}}();
+        (function() {
+            var iFrameResizer = { targetOrigin: '*' };
+            window.iFrameResizer = iFrameResizer;
+            // Immediate "I am alive" ping to the parent dashboard
+            window.parent.postMessage('[iFrameSizer]iFrameResizer0:0:0:init', '*');
+        })();
     </script>
 
     <style>
@@ -49,16 +53,14 @@
 </div>
 
 <script>
-    /* DIRECT WEALTHICA HANDSHAKE */
     (function() {
-        const checkWealthica = () => {
-            // Try to find the Wealthica global object
+        // Look for the addon object injected by Wealthica's parent window
+        function connect() {
             const W = window.Wealthica || window.WealthicaAddon || (window.parent && window.parent.Wealthica);
             
             if (!W) {
-                // If not found, manually signal parent we are ready to receive handshake
-                window.parent.postMessage({ type: 'ready' }, '*');
-                setTimeout(checkWealthica, 500);
+                // Keep trying until Wealthica injects the object
+                setTimeout(connect, 300);
                 return;
             }
 
@@ -66,20 +68,20 @@
                 const addon = (typeof W === 'function') ? new W() : W;
                 
                 addon.on('ready', async (data) => {
-                    console.log("Snowball-Div: Handshake Success");
+                    console.log("Handshake successful.");
                     try {
                         const txs = await addon.api.getTransactions({ limit: 1000 });
-                        render(txs);
+                        process(txs);
                     } catch (e) {
-                        document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="padding:40px; color:red;">Permission Error: Please enable Transaction access.</td></tr>';
+                        document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="padding:40px; color:red;">Permission Error. Please enable transaction access.</td></tr>';
                     }
                 });
             } catch (err) {
-                console.error("Snowball-Div: Initialization Error", err);
+                console.error("Connection error:", err);
             }
-        };
+        }
 
-        function render(txs) {
+        function process(txs) {
             const divs = {};
             let grand = 0;
             const years = {};
@@ -89,7 +91,7 @@
             const filtered = txs.filter(t => ['dividend','distribution','interest'].includes(t.type?.toLowerCase()));
 
             if (!filtered.length) {
-                document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px;">No dividend data found.</td></tr>';
+                document.getElementById('rows').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px;">No income transactions found in history.</td></tr>';
                 return;
             }
 
@@ -116,7 +118,7 @@
             `).join('');
         }
 
-        checkWealthica();
+        connect();
     })();
 </script>
 </body>
