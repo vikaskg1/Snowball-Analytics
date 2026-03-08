@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DiviGrowth Pro</title>
-    <!-- 1. Path to your local file -->
+    <!-- 1. The bridge file in your repo -->
     <script src="wealthica.js"></script>
     <style>
         :root { --w-blue: #1b6ec2; --bg: #f0f2f5; }
@@ -36,7 +36,7 @@
     </div>
     <table>
         <thead><tr><th>Symbol</th><th>Company</th><th style="text-align:right">Total Earned (CAD)</th></tr></thead>
-        <tbody id="rows"><tr><td colspan="3" style="text-align:center; padding:50px;">Syncing with Wealthica...</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="3" style="text-align:center; padding:50px;">Handshaking with Wealthica...</td></tr></tbody>
     </table>
     <div class="footer">
         <select style="padding:10px; border-radius:8px; border:1px solid #ccc;"><option>All Accounts</option></select>
@@ -45,26 +45,22 @@
 </div>
 
 <script>
-    // 2. RECURSIVE CHECK: The definitive fix for "Wealthica is not defined"
-    function startApp() {
-        // Detect either standard 'Wealthica' or legacy 'WealthicaAddon'
+    // 2. THE RECURSIVE FIX: Prevents "Wealthica is not defined"
+    (function startApp() {
         const W = window.Wealthica || window.WealthicaAddon;
         
         if (!W) {
-            console.log("SDK not ready, retrying in 200ms...");
-            setTimeout(startApp, 200);
+            console.log("Searching for SDK... retrying.");
+            setTimeout(startApp, 250);
             return;
         }
 
-        console.log("Library detected. Starting handshake...");
         const addon = new W();
-        
         addon.on('ready', async (data) => {
             try {
-                // Fetch last 1000 transactions to find income
                 const txs = await addon.api.getTransactions({ limit: 1000 });
                 const divs = {};
-                let grand = 0;
+                let grandTotal = 0;
                 const years = { '2020': 0, '2021': 0, '2022': 0, '2023': 0, '2024': 0 };
 
                 txs.filter(t => ['dividend','distribution','interest'].includes(t.type)).forEach(t => {
@@ -74,32 +70,25 @@
 
                     if(!divs[s]) divs[s] = { amt: 0, name: t.description ? t.description.split('-').shift().trim() : 'Income' };
                     divs[s].amt += a;
-                    grand += a;
+                    grandTotal += a;
                     if(years[y] !== undefined) years[y] += a;
                 });
 
-                // Update Table Content
                 const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
                 document.getElementById('rows').innerHTML = sorted.map(s => `
                     <tr><td><strong>${s}</strong></td><td>${divs[s].name}</td><td style="text-align:right; font-weight:600;">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits: 2})}</td></tr>
                 `).join('');
                 
-                document.getElementById('grand').innerText = grand.toLocaleString(undefined, {minimumFractionDigits: 2});
+                document.getElementById('grand').innerText = grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2});
                 
-                // Build Growth Bars
                 const max = Math.max(...Object.values(years)) || 1;
                 document.getElementById('chart').innerHTML = Object.keys(years).map(y => `
                     <div class="bar" style="height: ${(years[y]/max)*100}%" title="${y}"></div>
                 `).join('');
 
-            } catch (e) {
-                document.getElementById('rows').innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">Sync error. Please Refresh.</td></tr>`;
-            }
+            } catch (e) { console.error("Sync Error", e); }
         });
-    }
-
-    // Start the process
-    startApp();
+    })();
 </script>
 </body>
 </html>
