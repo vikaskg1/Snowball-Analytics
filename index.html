@@ -3,26 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>DiviGrowth Pro</title>
-    <!-- ONLY Wealthica and Chart.js are allowed by CSP -->
+    <!-- ONLY the essential Wealthica SDK -->
     <script src="https://wealthica.github.io"></script>
-    <script src="https://cdn.jsdelivr.net"></script>
     <style>
-        :root { --w-blue: #1b6ec2; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); padding: 20px; margin: 0; overflow-x: hidden; }
+        :root { --w-blue: #1b6ec2; --bg: #f0f2f5; --green: #28a745; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); padding: 20px; margin: 0; }
         .card { max-width: 900px; margin: 20px auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
         .header { background: var(--w-blue); color: white; padding: 18px 30px; font-size: 1.3rem; font-weight: bold; }
+        
+        /* Summary Section */
         .summary { padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
         .total-val { font-size: 2.5rem; font-weight: 800; margin: 5px 0; display: flex; align-items: center; gap: 15px; }
-        .ytd { background: #e6f7ed; color: #28a745; padding: 5px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; }
-        .chart-box { width: 280px; height: 120px; }
+        .badge { background: #e6f7ed; color: var(--green); padding: 5px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; }
+        
+        /* CSS Bar Chart */
+        .chart-box { display: flex; align-items: flex-end; gap: 8px; height: 80px; padding-bottom: 20px; }
+        .bar { width: 25px; background: #5a96d4; border-radius: 3px 3px 0 0; position: relative; }
+        .bar-label { position: absolute; bottom: -20px; left: 0; width: 100%; font-size: 10px; text-align: center; color: #666; }
+
+        /* Table Section */
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 15px 40px; color: #64748b; font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #edf2f7; background: #f8fafc; }
         td { padding: 14px 40px; border-bottom: 1px solid #f1f5f9; font-size: 1rem; }
         tr:nth-child(even) { background: #f9fbff; }
-        .amt { text-align: right; font-weight: 700; color: #0f172a; }
-        .footer { padding: 25px 40px; display: flex; justify-content: space-between; background: #fff; border-top: 1px solid #eee; }
-        select { padding: 10px 15px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 500; cursor: pointer; }
-        .btn { background: var(--w-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .amt { text-align: right; font-weight: 700; }
+
+        /* Footer */
+        .footer { padding: 25px 40px; display: flex; justify-content: space-between; background: #fff; }
+        select, .btn { padding: 10px 15px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer; font-weight: 600; }
+        .btn { background: var(--w-blue); color: white; border: none; }
     </style>
 </head>
 <body>
@@ -32,72 +41,63 @@
     <div class="summary">
         <div>
             <div style="color:#64748b; font-size:1rem;">Total Portfolio Dividends</div>
-            <div class="total-val">$<span id="grand">0.00</span> <small>CAD</small> <span class="ytd">+5.2% (YTD)</span></div>
+            <div class="total-val">$<span id="grand">0.00</span> <small>CAD</small> <span class="badge">+5.2% (YTD)</span></div>
         </div>
-        <div class="chart-box"><canvas id="barChart"></canvas></div>
+        <div class="chart-box" id="barChart">
+            <!-- Bars generated via JS -->
+        </div>
     </div>
     <table>
         <thead><tr><th>Symbol</th><th>Company</th><th style="text-align:right">Total Earned (CAD)</th></tr></thead>
-        <tbody id="rows"></tbody>
+        <tbody id="rows"><tr><td colspan="3" style="text-align:center">Loading dividends...</td></tr></tbody>
     </table>
     <div class="footer">
-        <select id="accs"><option value="all">All Accounts</option></select>
+        <select><option>All Accounts</option></select>
         <button class="btn" onclick="location.reload()">Refresh Data</button>
     </div>
 </div>
 
 <script>
-    // Fail-safe: Wait for the library to be defined before running
-    var checkLibrary = setInterval(function() {
-        if (typeof Wealthica !== "undefined") {
-            clearInterval(checkLibrary);
-            startPowerUp();
-        }
-    }, 100);
+    // Pure Wealthica implementation
+    const addon = new Wealthica();
+    
+    addon.on('ready', async (data) => {
+        try {
+            const txs = await addon.api.getTransactions({ limit: 1000 });
+            const divs = {};
+            let total = 0;
+            const years = { '2021': 0, '2022': 0, '2023': 0, '2024': 0 };
 
-    function startPowerUp() {
-        const addon = new Wealthica();
-        
-        addon.on('ready', async (data) => {
-            try {
-                // Fetch real transactions (limit 1000 for speed)
-                const txs = await addon.api.getTransactions({ limit: 1000 });
-                const divs = {};
-                let total = 0;
+            txs.filter(t => ['dividend','distribution'].includes(t.type)).forEach(t => {
+                const s = t.symbol || 'CASH';
+                const year = new Date(t.date).getFullYear();
+                const amt = Math.abs(parseFloat(t.amount) || 0);
 
-                txs.filter(t => ['dividend','distribution'].includes(t.type)).forEach(t => {
-                    const s = t.symbol || 'CASH';
-                    const name = t.description ? t.description.split('-')[0].trim() : 'Unknown';
-                    if(!divs[s]) divs[s] = { amt: 0, name: name };
-                    divs[s].amt += Math.abs(parseFloat(t.amount) || 0);
-                    total += Math.abs(parseFloat(t.amount) || 0);
-                });
+                if(!divs[s]) divs[s] = { amt: 0, name: t.description ? t.description.split('-')[0] : 'Unknown' };
+                divs[s].amt += amt;
+                total += amt;
+                if(years[year] !== undefined) years[year] += amt;
+            });
 
-                const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
-                document.getElementById('rows').innerHTML = sorted.map(s => `
-                    <tr>
-                        <td><strong>${s}</strong></td>
-                        <td style="color:#64748b">${divs[s].name}</td>
-                        <td class="amt">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
-                    </tr>`).join('');
-                
-                document.getElementById('grand').innerText = total.toLocaleString(undefined, {minimumFractionDigits:2});
-                renderChart(txs);
-            } catch (e) { console.error("Wealthica API Error:", e); }
-        });
-    }
+            // Populate Table
+            const sorted = Object.keys(divs).sort((a,b) => divs[b].amt - divs[a].amt);
+            document.getElementById('rows').innerHTML = sorted.map(s => `
+                <tr>
+                    <td><strong>${s}</strong></td>
+                    <td style="color:#64748b">${divs[s].name}</td>
+                    <td class="amt">$${divs[s].amt.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                </tr>`).join('');
+            
+            document.getElementById('grand').innerText = total.toLocaleString(undefined, {minimumFractionDigits:2});
+            
+            // Draw CSS Bars
+            const max = Math.max(...Object.values(years));
+            document.getElementById('barChart').innerHTML = Object.keys(years).map(y => `
+                <div class="bar" style="height: ${(years[y]/max)*100}%"><div class="bar-label">${y}</div></div>
+            `).join('');
 
-    function renderChart(txs) {
-        const years = [2020, 2021, 2022, 2023, 2024];
-        const data = years.map(y => txs.filter(t => new Date(t.date).getFullYear() === y && ['dividend','distribution'].includes(t.type))
-            .reduce((sum, t) => sum + Math.abs(t.amount), 0));
-
-        new Chart(document.getElementById('barChart'), {
-            type: 'bar',
-            data: { labels: years, datasets: [{ data, backgroundColor: '#4a90e2', borderRadius: 4 }] },
-            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-        });
-    }
+        } catch (e) { document.getElementById('rows').innerText = "Error loading data."; }
+    });
 </script>
 </body>
 </html>
