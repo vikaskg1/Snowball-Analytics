@@ -1,22 +1,27 @@
-var addon = new Addon();
-
-let currentSort = { column: null, ascending: true };
+let addon, currentSort = { column: null, ascending: true };
 
 document.getElementById("applyFilter").addEventListener("click", loadDividendHistory);
 
-// Initial load
-addon.on('init', async function() {
-  document.getElementById("status").innerText = "Connected to Wealthica! Loading dividends…";
-  await loadDividendHistory();
-});
+if (typeof Addon !== "undefined") {
+  // Only initialize if running inside Wealthica
+  addon = new Addon();
+
+  addon.on('init', async function() {
+    document.getElementById("status").innerText = "Connected to Wealthica! Loading dividends…";
+    await loadDividendHistory();
+  });
+} else {
+  document.getElementById("status").innerText = "Addon can only run inside Wealthica.";
+}
 
 async function loadDividendHistory() {
   const container = document.getElementById("content");
   container.innerHTML = "";
 
+  if (!addon) return;
+
   try {
     const transactions = await addon.api.getTransactions();
-
     if (!transactions || transactions.length === 0) {
       container.innerText = "No transactions found.";
       return;
@@ -48,21 +53,15 @@ async function loadDividendHistory() {
     filteredTx.forEach(tx => {
       const symbol = tx.symbol || tx.security?.symbol || "UNKNOWN";
       const amount = tx.currency_amount || 0;
-
-      if (!dividendMap[symbol]) {
-        dividendMap[symbol] = { total: 0, count: 0 };
-      }
-
+      if (!dividendMap[symbol]) dividendMap[symbol] = { total: 0, count: 0 };
       dividendMap[symbol].total += amount;
       dividendMap[symbol].count += 1;
     });
 
-    // Convert to array and sort initially by total descending
     let dataArray = Object.entries(dividendMap).map(([symbol, data]) => ({ symbol, ...data }));
     dataArray.sort((a, b) => b.total - a.total);
 
     renderDividendTable(dataArray);
-
   } catch (err) {
     container.innerText = "Error loading transactions.";
     console.error("loadDividendHistory error:", err);
@@ -72,11 +71,9 @@ async function loadDividendHistory() {
 function renderDividendTable(data) {
   const container = document.getElementById("content");
   container.innerHTML = "";
-
   let grandTotal = 0;
 
   const table = document.createElement("table");
-
   const thead = document.createElement("thead");
   thead.innerHTML = `
     <tr>
@@ -88,16 +85,12 @@ function renderDividendTable(data) {
   `;
   table.appendChild(thead);
 
-  // Add click listeners for sorting
+  // Sorting listeners
   thead.querySelectorAll("th").forEach(th => {
     th.addEventListener("click", () => {
       const column = th.dataset.column;
-      if (currentSort.column === column) {
-        currentSort.ascending = !currentSort.ascending;
-      } else {
-        currentSort.column = column;
-        currentSort.ascending = true;
-      }
+      if (currentSort.column === column) currentSort.ascending = !currentSort.ascending;
+      else { currentSort.column = column; currentSort.ascending = true; }
       sortAndRender(data);
     });
   });
@@ -115,11 +108,10 @@ function renderDividendTable(data) {
     tbody.appendChild(row);
     grandTotal += rowData.total;
   });
-
   table.appendChild(tbody);
   container.appendChild(table);
 
-  // Add arrows for sorted column
+  // Sort arrow
   thead.querySelectorAll(".sort-arrow").forEach(el => el.remove());
   if (currentSort.column) {
     const th = thead.querySelector(`th[data-column="${currentSort.column}"]`);
@@ -143,19 +135,10 @@ function sortAndRender(data) {
   data.sort((a, b) => {
     let valA, valB;
     switch (currentSort.column) {
-      case "symbol":
-        valA = a.symbol.toUpperCase();
-        valB = b.symbol.toUpperCase();
-        return currentSort.ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
-      case "count":
-        valA = a.count; valB = b.count;
-        return currentSort.ascending ? valA - valB : valB - valA;
-      case "total":
-        valA = a.total; valB = b.total;
-        return currentSort.ascending ? valA - valB : valB - valA;
-      case "average":
-        valA = a.total / a.count; valB = b.total / b.count;
-        return currentSort.ascending ? valA - valB : valB - valA;
+      case "symbol": valA = a.symbol.toUpperCase(); valB = b.symbol.toUpperCase(); return currentSort.ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      case "count": valA = a.count; valB = b.count; return currentSort.ascending ? valA - valB : valB - valA;
+      case "total": valA = a.total; valB = b.total; return currentSort.ascending ? valA - valB : valB - valA;
+      case "average": valA = a.total / a.count; valB = b.total / b.count; return currentSort.ascending ? valA - valB : valB - valA;
     }
   });
 
