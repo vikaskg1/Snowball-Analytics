@@ -5,11 +5,9 @@ addon.on('init', async (data) => {
   console.log("data is", data);
   await loadDividendHistory(data);
 
-  addon.on('filters:changed', async (newFilters) => {
+  addon.on('update', async (newFilters) => {
         console.log("Filters changed!", newFilters);
-        
-        // This is where you re-fetch your data
-        // Example: await myRefreshFunction(newFilters);
+        await loadDividendHistory(data);
     });
 });
 
