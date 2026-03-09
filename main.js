@@ -1,20 +1,13 @@
 var addon = new Addon();
 
-// Listen for filter changes outside init
-addon.on('filterChange', async function() {
-  document.getElementById("status").innerText = "Global filters changed — updating…";
-  await loadDividendHistory();
-});
+let currentSort = { column: null, ascending: true };
+
+document.getElementById("applyFilter").addEventListener("click", loadDividendHistory);
 
 // Initial load
 addon.on('init', async function() {
-  try {
-    document.getElementById("status").innerText = "Connected to Wealthica! Loading dividends…";
-    await loadDividendHistory();
-  } catch (err) {
-    document.getElementById("status").innerText = "Error initializing add-on";
-    console.error("Initialization error:", err);
-  }
+  document.getElementById("status").innerText = "Connected to Wealthica! Loading dividends…";
+  await loadDividendHistory();
 });
 
 async function loadDividendHistory() {
@@ -22,25 +15,37 @@ async function loadDividendHistory() {
   container.innerHTML = "";
 
   try {
-    // Simply fetch all transactions available to the add-on
     const transactions = await addon.api.getTransactions();
 
     if (!transactions || transactions.length === 0) {
-      container.innerText = "No transactions available.";
+      container.innerText = "No transactions found.";
       return;
     }
 
-    // Only consider dividends
+    // Filter only dividends
     const dividendTx = transactions.filter(tx => tx.origin_type === "Dividend");
 
-    if (dividendTx.length === 0) {
-      container.innerText = "No dividend transactions found.";
+    // Apply custom date range filter
+    const startInput = document.getElementById("startDate").value;
+    const endInput = document.getElementById("endDate").value;
+    let startDate = startInput ? new Date(startInput) : null;
+    let endDate = endInput ? new Date(endInput) : null;
+
+    const filteredTx = dividendTx.filter(tx => {
+      const date = new Date(tx.settlement_date || tx.processing_date);
+      if (startDate && date < startDate) return false;
+      if (endDate && date > endDate) return false;
+      return true;
+    });
+
+    if (filteredTx.length === 0) {
+      container.innerText = "No dividend transactions found for the selected date range.";
       return;
     }
 
     // Group by symbol
     const dividendMap = {};
-    dividendTx.forEach(tx => {
+    filteredTx.forEach(tx => {
       const symbol = tx.symbol || tx.security?.symbol || "UNKNOWN";
       const amount = tx.currency_amount || 0;
 
@@ -52,8 +57,9 @@ async function loadDividendHistory() {
       dividendMap[symbol].count += 1;
     });
 
-    // Sort descending by total
-    const sorted = Object.entries(dividendMap).sort((a, b) => b[1].total - a[1].total);
+    // Convert to array and sort initially by total descending
+    let sorted = Object.entries(dividendMap).map(([symbol, data]) => ({ symbol, ...data }));
+    sorted.sort((a, b) => b.total - a.total);
 
     renderDividendTable(sorted);
 
@@ -63,7 +69,7 @@ async function loadDividendHistory() {
   }
 }
 
-function renderDividendTable(sortedData) {
+function renderDividendTable(data) {
   const container = document.getElementById("content");
   container.innerHTML = "";
 
@@ -71,31 +77,44 @@ function renderDividendTable(sortedData) {
 
   const table = document.createElement("table");
 
-  // Table header
   const thead = document.createElement("thead");
   thead.innerHTML = `
     <tr>
-      <th>Symbol</th>
-      <th>Payments</th>
-      <th>Total ($)</th>
-      <th>Average per Payment ($)</th>
+      <th data-column="symbol">Symbol</th>
+      <th data-column="count">Payments</th>
+      <th data-column="total">Total ($)</th>
+      <th data-column="average">Average per Payment ($)</th>
     </tr>
   `;
   table.appendChild(thead);
 
-  const tbody = document.createElement("tbody");
+  // Add click listeners for sorting
+  thead.querySelectorAll("th").forEach(th => {
+    th.style.cursor = "pointer";
+    th.addEventListener("click", () => {
+      const column = th.dataset.column;
+      if (currentSort.column === column) {
+        currentSort.ascending = !currentSort.ascending;
+      } else {
+        currentSort.column = column;
+        currentSort.ascending = true;
+      }
+      sortAndRender(data);
+    });
+  });
 
-  sortedData.forEach(([symbol, data]) => {
-    const avg = data.count > 0 ? (data.total / data.count).toFixed(2) : "0.00";
+  const tbody = document.createElement("tbody");
+  data.forEach(rowData => {
+    const avg = rowData.count > 0 ? (rowData.total / rowData.count).toFixed(2) : "0.00";
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td data-label="Symbol">${symbol}</td>
-      <td data-label="Payments">${data.count}</td>
-      <td data-label="Total ($)">${data.total.toFixed(2)}</td>
-      <td data-label="Average per Payment ($)">${avg}</td>
+      <td>${rowData.symbol}</td>
+      <td>${rowData.count}</td>
+      <td>${rowData.total.toFixed(2)}</td>
+      <td>${avg}</td>
     `;
     tbody.appendChild(row);
-    grandTotal += data.total;
+    grandTotal += rowData.total;
   });
 
   table.appendChild(tbody);
@@ -106,5 +125,30 @@ function renderDividendTable(sortedData) {
   totalDiv.innerText = `Grand Total Dividends: $${grandTotal.toFixed(2)}`;
   container.appendChild(totalDiv);
 
-  document.getElementById("status").innerText = "Connected to Wealthica! Displaying historical dividends.";
+  document.getElementById("status").innerText = "Connected to Wealthica! Displaying dividends.";
+}
+
+function sortAndRender(data) {
+  if (!currentSort.column) return;
+
+  data.sort((a, b) => {
+    let valA, valB;
+    switch (currentSort.column) {
+      case "symbol":
+        valA = a.symbol.toUpperCase();
+        valB = b.symbol.toUpperCase();
+        return currentSort.ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      case "count":
+        valA = a.count; valB = b.count;
+        return currentSort.ascending ? valA - valB : valB - valA;
+      case "total":
+        valA = a.total; valB = b.total;
+        return currentSort.ascending ? valA - valB : valB - valA;
+      case "average":
+        valA = a.total / a.count; valB = b.total / b.count;
+        return currentSort.ascending ? valA - valB : valB - valA;
+    }
+  });
+
+  renderDividendTable(data);
 }
