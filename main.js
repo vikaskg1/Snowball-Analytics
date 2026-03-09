@@ -22,17 +22,11 @@ async function loadDividendHistory() {
   container.innerHTML = "";
 
   try {
-    // Get the currently selected global filters
-    const filters = addon.getFilters(); // { startDate, endDate, accounts, ... }
-
-    const transactions = await addon.api.getTransactions({
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      accounts: filters.accounts
-    });
+    // Simply fetch all transactions available to the add-on
+    const transactions = await addon.api.getTransactions();
 
     if (!transactions || transactions.length === 0) {
-      container.innerText = "No transactions found for the selected filters.";
+      container.innerText = "No transactions available.";
       return;
     }
 
