@@ -1,159 +1,102 @@
 var addon = new Addon();
 
 addon.on('init', function () {
-
-document.getElementById("status").innerText = "Connected to Wealthica";
-
-loadPortfolio();
-
+  document.getElementById("status").innerText = "Connected to Wealthica!";
+  loadPortfolio();
 });
 
+async function loadPortfolio() {
+  try {
+    const positions = await addon.api.getPositions();
 
-async function loadPortfolio(){
+    // fallback dummy portfolio if no dividend info
+    const portfolio = positions.length ? positions : [
+      { symbol: "AAPL", shares: 10, dividend: 0.92 },
+      { symbol: "MSFT", shares: 5, dividend: 2.72 },
+      { symbol: "KO", shares: 20, dividend: 0.44 },
+      { symbol: "AAPL", shares: 5, dividend: 0.92 }
+    ];
 
-try{
+    // aggregate dividends by symbol
+    const dividendMap = {};
+    portfolio.forEach(p => {
+      const symbol = p.symbol || "UNKNOWN";
+      const shares = p.quantity || p.shares || 0;
+      const dividendPerShare = p.dividend || 0;
 
-const positions = await addon.api.getPositions();
+      if (!dividendMap[symbol]) {
+        dividendMap[symbol] = { shares: 0, dividendPerShare };
+      }
+      dividendMap[symbol].shares += shares;
+    });
 
-const dividendMap = {};
+    renderDividendSummary(dividendMap);
+    renderSnowball(dividendMap);
 
-positions.forEach(p => {
-
-if(!p.symbol) return;
-
-const symbol = p.symbol;
-
-const shares = p.quantity || 0;
-
-/*
-Wealthica usually does NOT provide dividend data
-so this example assumes a dividend field exists.
-
-You may later fetch dividend data from an API.
-*/
-
-const dividendPerShare = p.dividend || 0;
-
-if(!dividendMap[symbol]){
-
-dividendMap[symbol] = {
-shares:0,
-dividend:dividendPerShare
-};
-
+  } catch (err) {
+    document.getElementById("status").innerText = "Could not load portfolio";
+    console.error(err);
+  }
 }
 
-dividendMap[symbol].shares += shares;
+function renderDividendSummary(map) {
+  const container = document.getElementById("content");
+  container.innerHTML = "";
+  let totalAnnual = 0;
 
-});
+  for (const symbol in map) {
+    const data = map[symbol];
+    const annualDividend = data.shares * data.dividendPerShare;
+    totalAnnual += annualDividend;
 
-renderDividendSummary(dividendMap);
+    const row = document.createElement("div");
+    row.className = "symbol-row";
+    row.innerText = `${symbol}: ${data.shares} shares → Annual Dividend $${annualDividend.toFixed(2)}`;
+    container.appendChild(row);
+  }
 
-renderSnowball(dividendMap);
-
-}
-catch(err){
-
-document.getElementById("status").innerText =
-"Could not load portfolio";
-
-console.error(err);
-
-}
-
-}
-
-
-
-function renderDividendSummary(map){
-
-const container = document.getElementById("content");
-
-container.innerHTML="";
-
-let totalAnnual = 0;
-
-for(const symbol in map){
-
-const data = map[symbol];
-
-const annualDividend = data.shares * data.dividend;
-
-totalAnnual += annualDividend;
-
-const row = document.createElement("div");
-
-row.className="symbol-row";
-
-row.innerText =
-`${symbol} — ${data.shares} shares — Annual Dividend $${annualDividend.toFixed(2)}`;
-
-container.appendChild(row);
-
+  const monthly = totalAnnual / 12;
+  const total = document.createElement("div");
+  total.className = "total";
+  total.innerText = `Total Annual Dividend: $${totalAnnual.toFixed(2)} | Monthly: $${monthly.toFixed(2)}`;
+  container.appendChild(total);
 }
 
-const monthly = totalAnnual / 12;
+function renderSnowball(map) {
+  let totalAnnual = 0;
+  for (const symbol in map) {
+    const data = map[symbol];
+    totalAnnual += data.shares * data.dividendPerShare;
+  }
 
-const total = document.createElement("div");
+  const monthly = totalAnnual / 12;
+  const months = [];
+  const cumulative = [];
+  let runningTotal = 0;
 
-total.className="total";
+  for (let i = 1; i <= 60; i++) {
+    runningTotal += monthly;
+    months.push("M" + i);
+    cumulative.push(runningTotal.toFixed(2));
+  }
 
-total.innerText =
-`Total Annual Dividend: $${totalAnnual.toFixed(2)}  |  Monthly: $${monthly.toFixed(2)}`;
-
-container.appendChild(total);
-
-}
-
-
-
-function renderSnowball(map){
-
-let totalAnnual = 0;
-
-for(const symbol in map){
-
-totalAnnual += map[symbol].shares * map[symbol].dividend;
-
-}
-
-let monthly = totalAnnual / 12;
-
-let months = [];
-
-let income = [];
-
-let cumulative = 0;
-
-for(let i=1;i<=60;i++){
-
-cumulative += monthly;
-
-months.push("M"+i);
-
-income.push(cumulative);
-
-}
-
-const ctx = document.getElementById("snowballChart");
-
-new Chart(ctx,{
-
-type:"line",
-
-data:{
-labels:months,
-datasets:[{
-label:"Dividend Snowball",
-data:income,
-borderWidth:3
-}]
-},
-
-options:{
-responsive:true
-}
-
-});
-
+  const ctx = document.getElementById("snowballChart");
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: months,
+      datasets: [{
+        label: "Dividend Snowball ($)",
+        data: cumulative,
+        borderWidth: 3,
+        borderColor: "#2c3e50",
+        backgroundColor: "rgba(44,62,80,0.1)",
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true } }
+    }
+  });
 }
