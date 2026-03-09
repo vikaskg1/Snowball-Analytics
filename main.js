@@ -8,7 +8,7 @@ addon.on('init', async function() {
     // Load initial transactions
     await loadDividendHistory();
 
-    // Respond to global filter changes
+    // React to global filter changes
     addon.on('filtersChanged', async function() {
       document.getElementById("status").innerText = "Global filters changed — updating...";
       await loadDividendHistory();
