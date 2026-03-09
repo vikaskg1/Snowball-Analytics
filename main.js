@@ -9,26 +9,24 @@ async function loadPortfolio() {
   try {
     const positions = await addon.api.getPositions();
 
-    // fallback dummy portfolio if no dividend info
-    const portfolio = positions.length ? positions : [
-      { symbol: "AAPL", shares: 10, dividend: 0.92 },
-      { symbol: "MSFT", shares: 5, dividend: 2.72 },
-      { symbol: "KO", shares: 20, dividend: 0.44 },
-      { symbol: "AAPL", shares: 5, dividend: 0.92 }
-    ];
-
-    // aggregate dividends by symbol
-    const dividendMap = {};
-    portfolio.forEach(p => {
-      const symbol = p.symbol || "UNKNOWN";
-      const shares = p.quantity || p.shares || 0;
-      const dividendPerShare = p.dividend || 0;
-
-      if (!dividendMap[symbol]) {
-        dividendMap[symbol] = { shares: 0, dividendPerShare };
-      }
-      dividendMap[symbol].shares += shares;
+    // Aggregate shares by symbol
+    const sharesMap = {};
+    positions.forEach(p => {
+      const symbol = p.symbol;
+      const shares = p.quantity || 0;
+      if (!sharesMap[symbol]) sharesMap[symbol] = 0;
+      sharesMap[symbol] += shares;
     });
+
+    // Fetch dividend per share for each symbol from Yahoo Finance
+    const dividendMap = {};
+    for (const symbol in sharesMap) {
+      const dividendPerShare = await fetchDividend(symbol);
+      dividendMap[symbol] = {
+        shares: sharesMap[symbol],
+        dividendPerShare
+      };
+    }
 
     renderDividendSummary(dividendMap);
     renderSnowball(dividendMap);
@@ -39,9 +37,21 @@ async function loadPortfolio() {
   }
 }
 
+// Example fetch function (replace with real API)
+async function fetchDividend(symbol) {
+  // For testing, hardcode dividends
+  const exampleDividends = {
+    "AAPL": 0.92,
+    "MSFT": 2.72,
+    "KO": 0.44
+  };
+  return exampleDividends[symbol] || 0;
+}
+
 function renderDividendSummary(map) {
   const container = document.getElementById("content");
   container.innerHTML = "";
+
   let totalAnnual = 0;
 
   for (const symbol in map) {
@@ -65,8 +75,7 @@ function renderDividendSummary(map) {
 function renderSnowball(map) {
   let totalAnnual = 0;
   for (const symbol in map) {
-    const data = map[symbol];
-    totalAnnual += data.shares * data.dividendPerShare;
+    totalAnnual += map[symbol].shares * map[symbol].dividendPerShare;
   }
 
   const monthly = totalAnnual / 12;
