@@ -1,12 +1,9 @@
 var addon = new Addon();
 
 // Initial load
-addon.on('init', async function() {
+addon.on('ready', async function() {
   try {
     document.getElementById("status").innerText = "Connected to Wealthica!";
-
-    // Wait for global filters to be applied
-    await addon.filtersReady();
 
     // Load and render dividends
     await loadDividendHistory();
