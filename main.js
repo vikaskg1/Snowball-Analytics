@@ -14,6 +14,7 @@ addon.on('init', async (data) => {
 
 async function loadDividendHistory(filters) {
   try {
+    console.log("Filters are!", filters);
     const transactions = await addon.api.getTransactions({
         // Map dashboard filters to API parameters
         from: filters.dateRange[0],
