@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <title>Wealthica Dividend Summary</title>
+
   <!-- CSS -->
   <link rel="stylesheet" href="style.css">
-  <!-- Wealthica SDK -->
-  <script src="https://cdn.wealthica.com/addon/wealthica.js"></script>
+
+  <!-- Wealthica SDK from public CDN -->
+  <script src="https://unpkg.com/wealthica-sdk-js@latest/dist/wealthica.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>Dividend Summary</h1>
     <div id="status">Initializing…</div>
 
-    <!-- Custom Date Range Filter -->
+    <!-- Date range filters -->
     <div class="filters">
       <label>
         Start Date:
@@ -29,7 +31,7 @@
     <div id="content"></div>
   </div>
 
-  <!-- JS -->
+  <!-- Main JS -->
   <script src="main.js"></script>
 </body>
 </html>
