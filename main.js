@@ -1,37 +1,44 @@
 var addon = new Addon();
 
+// Initial load
 addon.on('init', async function() {
-  document.getElementById("status").innerText = "Connected to Wealthica!";
-   await addon.filtersReady();
-  await loadDividendHistory();
-});
+  try {
+    document.getElementById("status").innerText = "Connected to Wealthica!";
 
-// React to global filter changes
-addon.on('filterChange', async function() {
-  document.getElementById("status").innerText = "Global filters changed — updating...";
-  await loadDividendHistory();
+    // Wait for global filters to be applied
+    await addon.filtersReady();
+
+    // Load and render dividends
+    await loadDividendHistory();
+
+    // Listen for global filter changes
+    addon.on('filterChange', async function() {
+      document.getElementById("status").innerText = "Global filters changed — updating...";
+      await loadDividendHistory();
+    });
+  } catch (err) {
+    document.getElementById("status").innerText = "Error initializing add-on";
+    console.error(err);
+  }
 });
 
 async function loadDividendHistory() {
   try {
-   const transactions = await addon.api.getTransactions();
+    const transactions = await addon.api.getTransactions();
 
-    // Filter only dividend transactions
+    // Filter dividend transactions
     const dividendTx = transactions.filter(tx => tx.origin_type === 'Dividends');
 
-    if(dividendTx.length === 0){
+    if (dividendTx.length === 0) {
       document.getElementById("content").innerText = "No historical dividends found.";
       return;
     }
 
+    // Group dividends by symbol
     const dividendMap = {};
-
     dividendTx.forEach(tx => {
-      // Symbol fallback for imported brokers
       const symbol = tx.symbol || tx.security?.symbol || "UNKNOWN";
-
-      // Read amount from possible broker-imported fields
-      const amount = tx.currency_amount || tx.value || tx.cashAmount || 0;
+      const amount = tx.currency_amount || 0; // Use currency_amount for imported broker transactions
 
       if (!dividendMap[symbol]) {
         dividendMap[symbol] = { total: 0, count: 0 };
@@ -41,12 +48,12 @@ async function loadDividendHistory() {
       dividendMap[symbol].count += 1;
     });
 
-    // Sort by total dividend descending
-    const sorted = Object.entries(dividendMap).sort((a,b) => b[1].total - a[1].total);
+    // Sort by total descending
+    const sorted = Object.entries(dividendMap).sort((a, b) => b[1].total - a[1].total);
 
     renderDividendTable(sorted);
 
-  } catch(err) {
+  } catch (err) {
     document.getElementById("status").innerText = "Error loading dividend history";
     console.error(err);
   }
