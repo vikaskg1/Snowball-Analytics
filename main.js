@@ -5,6 +5,11 @@ addon.on('init', async function() {
   await loadDividendHistory();
 });
 
+addon.on('inupdateit', async function() {
+  await loadDividendHistory();
+});
+
+
 async function loadDividendHistory() {
   try {
     const transactions = await addon.api.getTransactions();
