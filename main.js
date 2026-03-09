@@ -9,24 +9,26 @@ async function loadPortfolio() {
   try {
     const positions = await addon.api.getPositions();
 
-    // Aggregate shares by symbol
-    const sharesMap = {};
-    positions.forEach(p => {
-      const symbol = p.symbol;
-      const shares = p.quantity || 0;
-      if (!sharesMap[symbol]) sharesMap[symbol] = 0;
-      sharesMap[symbol] += shares;
-    });
+    // Hardcoded dividend values for testing
+    const dividendLookup = {
+      "AAPL": 0.92,
+      "MSFT": 2.72,
+      "KO": 0.44,
+      "TSLA": 0.00 // example of zero dividend stock
+    };
 
-    // Fetch dividend per share for each symbol from Yahoo Finance
+    // Aggregate shares by symbol
     const dividendMap = {};
-    for (const symbol in sharesMap) {
-      const dividendPerShare = await fetchDividend(symbol);
-      dividendMap[symbol] = {
-        shares: sharesMap[symbol],
-        dividendPerShare
-      };
-    }
+    positions.forEach(p => {
+      const symbol = p.symbol || "UNKNOWN";
+      const shares = p.quantity || 0;
+      const dividendPerShare = dividendLookup[symbol] || 0;
+
+      if (!dividendMap[symbol]) {
+        dividendMap[symbol] = { shares: 0, dividendPerShare };
+      }
+      dividendMap[symbol].shares += shares;
+    });
 
     renderDividendSummary(dividendMap);
     renderSnowball(dividendMap);
@@ -35,17 +37,6 @@ async function loadPortfolio() {
     document.getElementById("status").innerText = "Could not load portfolio";
     console.error(err);
   }
-}
-
-// Example fetch function (replace with real API)
-async function fetchDividend(symbol) {
-  // For testing, hardcode dividends
-  const exampleDividends = {
-    "AAPL": 0.92,
-    "MSFT": 2.72,
-    "KO": 0.44
-  };
-  return exampleDividends[symbol] || 0;
 }
 
 function renderDividendSummary(map) {
