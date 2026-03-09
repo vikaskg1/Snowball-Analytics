@@ -1,22 +1,21 @@
-// Local mock for testing outside Wealthica
-if (typeof Addon === "undefined") {
-  var Addon = function () {
-    this.api = {
-      getTransactions: async () => [
-        { origin_type: "Dividend", symbol: "ZMMK", currency_amount: 69.78, settlement_date: "2026-01-05" },
-        { origin_type: "Dividend", symbol: "BMO", currency_amount: 50.0, settlement_date: "2026-01-10" },
-        { origin_type: "Dividend", symbol: "ZMMK", currency_amount: 70.0, settlement_date: "2026-02-05" }
-      ]
-    };
-    this.on = () => {};
-    this.getFilters = () => ({ startDate: null, endDate: null });
-  };
-}
-
 const addon = new Addon();
 const statusEl = document.getElementById('status');
 const contentEl = document.getElementById('content');
 
+addon.on('init', async function() {
+  try {
+    document.getElementById("status").innerText = "Connected to Wealthica!";
+    await loadDividendHistory();
+    // React to global filter changes
+    addon.on('filterChange', async function() {
+      document.getElementById("status").innerText = "Global filters changed — updating...";
+      await loadDividendHistory();
+    });
+  } catch (err) {
+    document.getElementById("status").innerText = "Error initializing add-on";
+    console.error("Initialization error:", err);
+  }
+});
 async function loadDividendHistory() {
   try {
     statusEl.textContent = 'Loading dividends…';
@@ -81,8 +80,3 @@ async function loadDividendHistory() {
   }
 }
 
-// Initial fast load to avoid timeout
-addon.on('init', loadDividendHistory);
-
-// React to global filter changes
-addon.on('filtersChanged', loadDividendHistory);
