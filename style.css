@@ -33,7 +33,6 @@ th, td {
 th {
   background: #2980b9;
   color: #fff;
-  cursor: pointer;
 }
 
 tr:nth-child(even) {
@@ -47,4 +46,10 @@ tr.total-row {
 
 tr:hover {
   background: #d0e6f7;
+}
+
+.total {
+  margin-top: 10px;
+  font-weight: bold;
+  text-align: right;
 }
