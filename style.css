@@ -1,55 +1,96 @@
+/* Global styles */
 body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  font-family: 'Inter', Arial, sans-serif;
+  background: #f0f2f5;
   color: #333;
-}
-
-.container {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  padding: 30px;
 }
 
 h1 {
   text-align: center;
   color: #2c3e50;
+  font-size: 2em;
+  margin-bottom: 20px;
 }
 
+h2 {
+  margin-top: 40px;
+  color: #2c3e50;
+  font-size: 1.4em;
+  border-bottom: 2px solid #2c3e50;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+/* Status message */
+#status {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+/* Table styling */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+thead tr {
+  background: #2c3e50;
+  color: white;
+  text-align: left;
 }
 
 th, td {
-  padding: 10px 15px;
-  border: 1px solid #ddd;
-  text-align: center;
+  padding: 12px 15px;
 }
 
-th {
-  background: #2980b9;
-  color: #fff;
+tbody tr:nth-child(even) {
+  background: #f6f6f6;
 }
 
-tr:nth-child(even) {
-  background: #f9f9f9;
+tbody tr:hover {
+  background: #e8f0fe;
 }
 
-tr.total-row {
-  font-weight: bold;
-  background: #ecf0f1;
-}
-
-tr:hover {
-  background: #d0e6f7;
-}
-
+/* Grand total */
 .total {
-  margin-top: 10px;
+  margin-top: 20px;
+  background: #2c3e50;
+  color: #fff;
   font-weight: bold;
-  text-align: right;
+  font-size: 1.2em;
+  text-align: center;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+  thead tr {
+    display: none;
+  }
+  tr {
+    margin-bottom: 15px;
+  }
+  td {
+    padding-left: 50%;
+    position: relative;
+  }
+  td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    font-weight: bold;
+  }
 }
