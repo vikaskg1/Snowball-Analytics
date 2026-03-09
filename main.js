@@ -58,10 +58,10 @@ async function loadDividendHistory() {
     });
 
     // Convert to array and sort initially by total descending
-    let sorted = Object.entries(dividendMap).map(([symbol, data]) => ({ symbol, ...data }));
-    sorted.sort((a, b) => b.total - a.total);
+    let dataArray = Object.entries(dividendMap).map(([symbol, data]) => ({ symbol, ...data }));
+    dataArray.sort((a, b) => b.total - a.total);
 
-    renderDividendTable(sorted);
+    renderDividendTable(dataArray);
 
   } catch (err) {
     container.innerText = "Error loading transactions.";
@@ -90,7 +90,6 @@ function renderDividendTable(data) {
 
   // Add click listeners for sorting
   thead.querySelectorAll("th").forEach(th => {
-    th.style.cursor = "pointer";
     th.addEventListener("click", () => {
       const column = th.dataset.column;
       if (currentSort.column === column) {
@@ -119,6 +118,16 @@ function renderDividendTable(data) {
 
   table.appendChild(tbody);
   container.appendChild(table);
+
+  // Add arrows for sorted column
+  thead.querySelectorAll(".sort-arrow").forEach(el => el.remove());
+  if (currentSort.column) {
+    const th = thead.querySelector(`th[data-column="${currentSort.column}"]`);
+    const arrow = document.createElement("span");
+    arrow.className = "sort-arrow";
+    arrow.innerHTML = currentSort.ascending ? "&#9650;" : "&#9660;"; // ▲ or ▼
+    th.appendChild(arrow);
+  }
 
   const totalDiv = document.createElement("div");
   totalDiv.className = "total";
