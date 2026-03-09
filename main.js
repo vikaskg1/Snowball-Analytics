@@ -13,7 +13,6 @@ if (typeof Addon !== "undefined") {
 } else {
   document.getElementById("status").innerText = "Addon can only run inside Wealthica.";
 }
-
 async function loadDividendHistory() {
   const container = document.getElementById("content");
   container.innerHTML = "";
