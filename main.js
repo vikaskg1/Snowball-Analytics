@@ -4,10 +4,11 @@ addon.on('init', async function() {
   document.getElementById("status").innerText = "Connected to Wealthica!";
   await loadDividendHistory();
 
-  addon.on('filterChange', async (newFilters) => {
-        console.log("Dashboard filters updated:", newFilters);
-        // Trigger your data refresh logic here
-        await loadDividendHistory();
+  addon.on('filters:changed', async (newFilters) => {
+        console.log("Filters changed!", newFilters);
+        
+        // This is where you re-fetch your data
+        // Example: await myRefreshFunction(newFilters);
     });
 });
 
