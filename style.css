@@ -1,29 +1,91 @@
+/* Global styles */
 body {
-  font-family: Arial, sans-serif;
-  background: #f6f8fb;
-  padding: 20px;
+  font-family: 'Inter', Arial, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  padding: 30px;
 }
 
 h1 {
+  text-align: center;
   color: #2c3e50;
+  font-size: 2em;
+  margin-bottom: 20px;
 }
 
-#content {
-  margin-top: 20px;
-}
-
-.symbol-row {
-  padding: 8px 0;
-  border-bottom: 1px solid #ddd;
-}
-
-.total {
-  margin-top: 20px;
-  font-weight: bold;
-  font-size: 18px;
-}
-
-canvas {
+h2 {
   margin-top: 40px;
-  max-width: 700px;
+  color: #2c3e50;
+  font-size: 1.4em;
+  border-bottom: 2px solid #2c3e50;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+/* Status message */
+#status {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+/* Dividend card container */
+#content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* Each stock card */
+.symbol-row {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.symbol-row:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+}
+
+/* Symbol name */
+.symbol-row::before {
+  content: attr(data-symbol);
+  font-weight: 700;
+  font-size: 1.1em;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Dividend info */
+.symbol-row span {
+  display: block;
+  font-size: 0.95em;
+  color: #555;
+}
+
+/* Grand total */
+.total {
+  grid-column: 1 / -1; /* Full width */
+  background: #2c3e50;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.2em;
+  text-align: center;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-top: 30px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  #content {
+    grid-template-columns: 1fr;
+  }
 }
