@@ -1,144 +1,92 @@
-let addon, currentSort = { column: null, ascending: true };
-
-document.getElementById("applyFilter").addEventListener("click", loadDividendHistory);
-
-// Only initialize if inside Wealthica
-if (typeof Addon !== "undefined") {
-  addon = new Addon();
-
-  addon.on('init', async function() {
-    document.getElementById("status").innerText = "Connected to Wealthica! Loading dividends…";
-    await loadDividendHistory();
-  });
-} else {
-  document.getElementById("status").innerText = "Addon can only run inside Wealthica.";
+// Mock fallback for local testing (optional)
+if (typeof Addon === "undefined") {
+  var Addon = function () {
+    this.api = {
+      getTransactions: async () => [
+        { origin_type: "Dividend", symbol: "ZMMK", currency_amount: 69.78, settlement_date: "2026-01-05" },
+        { origin_type: "Dividend", symbol: "BMO", currency_amount: 50.0, settlement_date: "2026-01-10" },
+        { origin_type: "Dividend", symbol: "ZMMK", currency_amount: 70.0, settlement_date: "2026-02-05" }
+      ]
+    };
+    this.on = () => {};
+    this.getFilters = () => ({ startDate: null, endDate: null });
+  };
 }
 
+const addon = new Addon();
+
+const statusEl = document.getElementById('status');
+const contentEl = document.getElementById('content');
+
 async function loadDividendHistory() {
-  const container = document.getElementById("content");
-  container.innerHTML = "";
-
-  if (!addon) return;
-
   try {
-    const transactions = await addon.api.getTransactions();
-    if (!transactions || transactions.length === 0) {
-      container.innerText = "No transactions found.";
-      return;
-    }
+    statusEl.textContent = 'Loading dividends…';
 
-    const dividendTx = transactions.filter(tx => tx.origin_type === "Dividend");
+    // Fetch transactions
+    const txs = await addon.api.getTransactions();
 
-    // Date filter
-    const startInput = document.getElementById("startDate").value;
-    const endInput = document.getElementById("endDate").value;
-    let startDate = startInput ? new Date(startInput) : null;
-    let endDate = endInput ? new Date(endInput) : null;
+    // Filter only dividends
+    const dividends = txs.filter(tx => tx.origin_type === 'Dividend');
 
-    const filteredTx = dividendTx.filter(tx => {
-      const date = new Date(tx.settlement_date || tx.processing_date);
-      if (startDate && date < startDate) return false;
-      if (endDate && date > endDate) return false;
-      return true;
-    });
-
-    if (filteredTx.length === 0) {
-      container.innerText = "No dividend transactions found for the selected date range.";
+    if (!dividends.length) {
+      contentEl.innerHTML = '<p>No dividends found for the selected filters.</p>';
+      statusEl.textContent = 'Connected to Wealthica!';
       return;
     }
 
     // Group by symbol
-    const dividendMap = {};
-    filteredTx.forEach(tx => {
-      const symbol = tx.symbol || tx.security?.symbol || "UNKNOWN";
-      const amount = tx.currency_amount || 0;
-      if (!dividendMap[symbol]) dividendMap[symbol] = { total: 0, count: 0 };
-      dividendMap[symbol].total += amount;
-      dividendMap[symbol].count += 1;
+    const grouped = {};
+    dividends.forEach(tx => {
+      if (!grouped[tx.symbol]) grouped[tx.symbol] = [];
+      grouped[tx.symbol].push(tx);
     });
 
-    let dataArray = Object.entries(dividendMap).map(([symbol, data]) => ({ symbol, ...data }));
-    dataArray.sort((a, b) => b.total - a.total);
+    // Build table HTML
+    let html = `<table>
+                  <thead>
+                    <tr>
+                      <th>Symbol</th>
+                      <th>Payments</th>
+                      <th>Total Amount</th>
+                      <th>Average Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>`;
 
-    renderDividendTable(dataArray);
+    let grandTotal = 0;
+
+    Object.keys(grouped).forEach(symbol => {
+      const arr = grouped[symbol];
+      const total = arr.reduce((sum, tx) => sum + tx.currency_amount, 0);
+      const avg = total / arr.length;
+      grandTotal += total;
+      html += `<tr>
+                 <td>${symbol}</td>
+                 <td>${arr.length}</td>
+                 <td>${total.toFixed(2)}</td>
+                 <td>${avg.toFixed(2)}</td>
+               </tr>`;
+    });
+
+    html += `<tr class="total-row">
+               <td colspan="2">Grand Total</td>
+               <td>${grandTotal.toFixed(2)}</td>
+               <td>-</td>
+             </tr>`;
+
+    html += '</tbody></table>';
+
+    contentEl.innerHTML = html;
+    statusEl.textContent = 'Connected to Wealthica!';
   } catch (err) {
-    container.innerText = "Error loading transactions.";
-    console.error("loadDividendHistory error:", err);
+    console.error('loadDividendHistory error:', err);
+    statusEl.textContent = 'Error loading dividends.';
+    contentEl.innerHTML = '';
   }
 }
 
-function renderDividendTable(data) {
-  const container = document.getElementById("content");
-  container.innerHTML = "";
-  let grandTotal = 0;
+// Load initially
+addon.on('ready', loadDividendHistory);
 
-  const table = document.createElement("table");
-  const thead = document.createElement("thead");
-  thead.innerHTML = `
-    <tr>
-      <th data-column="symbol">Symbol</th>
-      <th data-column="count">Payments</th>
-      <th data-column="total">Total ($)</th>
-      <th data-column="average">Average ($)</th>
-    </tr>
-  `;
-  table.appendChild(thead);
-
-  thead.querySelectorAll("th").forEach(th => {
-    th.addEventListener("click", () => {
-      const column = th.dataset.column;
-      if (currentSort.column === column) currentSort.ascending = !currentSort.ascending;
-      else { currentSort.column = column; currentSort.ascending = true; }
-      sortAndRender(data);
-    });
-  });
-
-  const tbody = document.createElement("tbody");
-  data.forEach(rowData => {
-    const avg = rowData.count > 0 ? (rowData.total / rowData.count).toFixed(2) : "0.00";
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${rowData.symbol}</td>
-      <td>${rowData.count}</td>
-      <td>${rowData.total.toFixed(2)}</td>
-      <td>${avg}</td>
-    `;
-    tbody.appendChild(row);
-    grandTotal += rowData.total;
-  });
-  table.appendChild(tbody);
-  container.appendChild(table);
-
-  // Sort arrow
-  thead.querySelectorAll(".sort-arrow").forEach(el => el.remove());
-  if (currentSort.column) {
-    const th = thead.querySelector(`th[data-column="${currentSort.column}"]`);
-    const arrow = document.createElement("span");
-    arrow.className = "sort-arrow";
-    arrow.innerHTML = currentSort.ascending ? "&#9650;" : "&#9660;";
-    th.appendChild(arrow);
-  }
-
-  const totalDiv = document.createElement("div");
-  totalDiv.className = "total";
-  totalDiv.innerText = `Grand Total Dividends: $${grandTotal.toFixed(2)}`;
-  container.appendChild(totalDiv);
-
-  document.getElementById("status").innerText = "Connected to Wealthica! Displaying dividends.";
-}
-
-function sortAndRender(data) {
-  if (!currentSort.column) return;
-
-  data.sort((a, b) => {
-    let valA, valB;
-    switch (currentSort.column) {
-      case "symbol": valA = a.symbol.toUpperCase(); valB = b.symbol.toUpperCase(); return currentSort.ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
-      case "count": valA = a.count; valB = b.count; return currentSort.ascending ? valA - valB : valB - valA;
-      case "total": valA = a.total; valB = b.total; return currentSort.ascending ? valA - valB : valB - valA;
-      case "average": valA = a.total / a.count; valB = b.total / b.count; return currentSort.ascending ? valA - valB : valB - valA;
-    }
-  });
-
-  renderDividendTable(data);
-}
+// Respond to Wealthica global filter changes
+addon.on('filtersChanged', loadDividendHistory);
