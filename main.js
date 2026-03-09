@@ -3,22 +3,21 @@ var addon = new Addon();
 addon.on('init', async (data) => {
   document.getElementById("status").innerText = "Connected to Wealthica!";
   console.log("data is", data);
-  await loadDividendHistory(data);
+  await loadDividendHistory( data.dateRangeFilter[0],  data.dateRangeFilter[1]);
 
   addon.on('update', async (newFilters) => {
         console.log("Filters changed!", newFilters);
-        await loadDividendHistory(data);
+        await loadDividendHistory(newFilters.fromDate, newFilters.toDate);
     });
 });
 
-async function loadDividendHistory(data) {
+async function loadDividendHistory(from, to) {
   try {
     console.log("Filters are!", data);
     const transactions = await addon.api.getTransactions({
         // Map dashboard filters to API parameters
-        from: data.dateRangeFilter[0],
-        to: data.dateRangeFilter[1],
-        accounts: data.groups.join(',')
+        from: from,
+        to: to
     });
 
     // Filter only dividend transactions
