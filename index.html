@@ -1,20 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Snowball Dividend Add-On</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>Dividend Snowball</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="wealthica.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
+
 <body>
 
-  <h1>Snowball Dividend Add-On</h1>
-  <div id="status">Initializing…</div>
-  <div id="content"></div>
+<h1>Dividend Snowball</h1>
 
-  <!-- Official Wealthica SDK -->
-  <script src="wealthica.js"></script>
-  <!-- Main add-on logic -->
-  <script src="main.js"></script>
+<div id="status">Initializing...</div>
+
+<h2>Dividend Summary</h2>
+<div id="content"></div>
+
+<h2>Monthly Dividend Snowball</h2>
+<canvas id="snowballChart"></canvas>
+
+<script src="main.js"></script>
 
 </body>
 </html>
