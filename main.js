@@ -1,16 +1,16 @@
 var addon = new Addon();
 
-// When the add-on is fully ready (filters applied)
-addon.on('ready', async function() {
+// Use init, because ready/filtersReady do not exist
+addon.on('init', async function() {
   try {
-    document.getElementById("status").innerText = "Connected to Wealthica!";
+    document.getElementById("status").innerText = "Connected to Wealthica! Loading dividends…";
 
-    // Initial load respecting filters
+    // Load transactions (first fetch)
     await loadDividendHistory();
 
-    // Listen for global filter changes
+    // Listen for filter changes
     addon.on('filterChange', async function() {
-      document.getElementById("status").innerText = "Global filters changed — updating...";
+      document.getElementById("status").innerText = "Global filters changed — updating…";
       await loadDividendHistory();
     });
 
@@ -21,19 +21,22 @@ addon.on('ready', async function() {
 });
 
 async function loadDividendHistory() {
+  const container = document.getElementById("content");
+  container.innerHTML = "";
+
   try {
     const transactions = await addon.api.getTransactions();
 
     if (!transactions || transactions.length === 0) {
-      document.getElementById("content").innerText = "No transactions returned.";
+      container.innerText = "No transactions found for the selected filters.";
       return;
     }
 
-    // Filter dividends using origin_type
-    const dividendTx = transactions.filter(tx => tx.origin_type === 'Dividend');
+    // Only consider dividends
+    const dividendTx = transactions.filter(tx => tx.origin_type === "Dividend");
 
     if (dividendTx.length === 0) {
-      document.getElementById("content").innerText = "No historical dividends found.";
+      container.innerText = "No dividend transactions found.";
       return;
     }
 
@@ -51,13 +54,13 @@ async function loadDividendHistory() {
       dividendMap[symbol].count += 1;
     });
 
-    // Sort descending
+    // Sort descending by total
     const sorted = Object.entries(dividendMap).sort((a, b) => b[1].total - a[1].total);
 
     renderDividendTable(sorted);
 
   } catch (err) {
-    document.getElementById("status").innerText = "Error loading dividend history";
+    container.innerText = "Error loading transactions.";
     console.error("loadDividendHistory error:", err);
   }
 }
@@ -70,7 +73,7 @@ function renderDividendTable(sortedData) {
 
   const table = document.createElement("table");
 
-  // Table header
+  // Header
   const thead = document.createElement("thead");
   thead.innerHTML = `
     <tr>
@@ -86,7 +89,6 @@ function renderDividendTable(sortedData) {
 
   sortedData.forEach(([symbol, data]) => {
     const avg = data.count > 0 ? (data.total / data.count).toFixed(2) : "0.00";
-
     const row = document.createElement("tr");
     row.innerHTML = `
       <td data-label="Symbol">${symbol}</td>
@@ -106,6 +108,5 @@ function renderDividendTable(sortedData) {
   totalDiv.innerText = `Grand Total Dividends: $${grandTotal.toFixed(2)}`;
   container.appendChild(totalDiv);
 
-  // Update status
   document.getElementById("status").innerText = "Connected to Wealthica! Displaying historical dividends.";
 }
