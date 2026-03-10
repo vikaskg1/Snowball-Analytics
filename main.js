@@ -79,8 +79,6 @@ async function loadDividendHistory(from, to) {
         dividendMap[symbol] = {
           total: 0,
           count: 0,
-          qty: 0,
-          lastPrice: 0,
         };
       }
 
@@ -90,8 +88,8 @@ async function loadDividendHistory(from, to) {
 
     const displayMap = {};
 
-    for (const symbol in dividendMap) {
-      const divData = dividendMap[symbol]; // Get { qty: 10, price: 150 }
+    for (const symbol in allPositionsMap) {
+      const divData = dividendMap[symbol] || { total: 0, count: 0 }; // Get { qty: 10, price: 150 }
 
       // Go DIRECTLY to the same Symbol in your Dividend Map
       // No searching required!
@@ -178,7 +176,7 @@ function renderDividendTable() {
   const tbody = document.createElement("tbody");
 
   data.forEach(([symbol, stats]) => {
-    const inv = stats.count ? (stats.qty * stats.lastPrice).toFixed(2) : "0.00";
+    const inv = (stats.qty * stats.lastPrice).toFixed(2);
 
     const row = document.createElement("tr");
 
