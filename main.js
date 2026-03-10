@@ -141,6 +141,14 @@ function renderDividendTable() {
       return (a[1].total - b[1].total) * dir;
     }
 
+    if (currentSort.column === "qty") {
+      return (a[1].qty - b[1].qty) * dir;
+    }
+
+    if (currentSort.column === "price") {
+      return (a[1].lastPrice - b[1].lastPrice) * dir;
+    }
+
     if (currentSort.column === "inv") {
       const invA = a[1].qty * a[1].lastPrice;
       const invB = b[1].qty * b[1].lastPrice;
@@ -159,6 +167,8 @@ function renderDividendTable() {
       <th data-sort="symbol">Symbol</th>
       <th data-sort="payments">Payments</th>
       <th data-sort="total">Total ($)</th>
+      <th data-sort="qty">Quantity</th>
+      <th data-sort="price">Price ($)</th>
       <th data-sort="inv">Invsted ($)</th>
     </tr>
   `;
@@ -176,6 +186,8 @@ function renderDividendTable() {
       <td data-label="Symbol">${symbol}</td>
       <td data-label="Payments">${stats.count}</td>
       <td data-label="Total ($)">${stats.total.toFixed(2)}</td>
+      <td data-label="Quantity">${stats.qty.toFixed(0)}</td>
+      <td data-label="Price ($)">${stats.lastPrice.toFixed(2)}</td>
       <td data-label="Invested ($)">${inv}</td>
     `;
 
