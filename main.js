@@ -14,7 +14,6 @@ const dividendTypes = new Set([
 
 addon.on("init", async (data) => {
   document.getElementById("status").innerText = "Connected to Wealthica!";
-  console.log("data is", data);
 
   await addon.api
     .getPositions()
@@ -34,36 +33,19 @@ addon.on("init", async (data) => {
       heldSymbols = new Set(Object.keys(positionsMap));
 
       allPositionsMap = positionsMap;
-      console.log("heldSymbols", heldSymbols);
     })
     .catch(function (err) {
       console.error("Error fetching positions:", err);
     });
 
-  await loadDividendHistory(data.dateRangeFilter[0], data.dateRangeFilter[1]);
-
-  addon.on("update", async (newFilters) => {
-    console.log("In Update!", newFilters);
-
-    if (newFilters && newFilters.dateRangeFilter) {
-      console.log("Has Real Filters changed!", newFilters);
-      await loadDividendHistory(newFilters.fromDate, newFilters.toDate);
-    }
-  });
+  await loadDividendHistory();
 });
 
-async function loadDividendHistory(from, to) {
+async function loadDividendHistory() {
   try {
-    const transactions = await addon.api.getTransactions({
-      from: from,
-      to: to,
-    });
+    const transactions = await getDividendTransactions(addon);
 
-    const dividendTx = transactions.filter(
-      (tx) => dividendTypes.has(tx.origin_type) && heldSymbols.has(tx.symbol),
-    );
-
-    if (dividendTx.length === 0) {
+    if (transactions === 0) {
       document.getElementById("content").innerText =
         "No historical dividends found.";
       return;
@@ -71,9 +53,9 @@ async function loadDividendHistory(from, to) {
 
     const dividendMap = {};
 
-    dividendTx.forEach((tx) => {
+    transactions.forEach((tx) => {
       const symbol = tx.symbol || tx.security?.symbol || "UNKNOWN";
-      const amount = tx.currency_amount || 0;
+      const amount = tx.amount || 0;
 
       if (!dividendMap[symbol]) {
         dividendMap[symbol] = {
@@ -81,7 +63,6 @@ async function loadDividendHistory(from, to) {
           count: 0,
         };
       }
-
       dividendMap[symbol].total += amount;
       dividendMap[symbol].count += 1;
     });
