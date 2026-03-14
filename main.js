@@ -44,7 +44,6 @@ addon.on("init", async (data) => {
 async function loadDividendHistory() {
   try {
     const transactions = await getDividendTransactions(addon);
-
     if (transactions === 0) {
       document.getElementById("content").innerText =
         "No historical dividends found.";
@@ -53,24 +52,44 @@ async function loadDividendHistory() {
 
     const dividendMap = {};
 
-    transactions.forEach((tx) => {
+    heldSymbols.forEach((s) => {
+      dividendMap[s] = {
+        total: 0,
+        count: 0,
+        monthly: 0,
+        yesterday: 0,
+      };
+    });
+
+    // console.log("dividendMap is", dividendMap);
+    for (const tx of transactions) {
       const symbol = tx.symbol || tx.security?.symbol || "UNKNOWN";
       const amount = tx.amount || 0;
 
-      if (!dividendMap[symbol]) {
-        dividendMap[symbol] = {
-          total: 0,
-          count: 0,
-        };
+      if (!heldSymbols.has(symbol)) {
+        continue;
       }
       dividendMap[symbol].total += amount;
+      if (isDateInThisMonth(tx.divDate)) {
+        dividendMap[symbol].monthly += amount;
+      }
+      if (isYesterday(tx.divDate)) {
+        dividendMap[symbol].yesterday += amount;
+      }
       dividendMap[symbol].count += 1;
-    });
+    }
 
     const displayMap = {};
 
+    //console.log("dividendMap -> ", dividendMap);
+
     for (const symbol in allPositionsMap) {
-      const divData = dividendMap[symbol] || { total: 0, count: 0 }; // Get { qty: 10, price: 150 }
+      const divData = dividendMap[symbol] || {
+        monthly: 0,
+        yesterday: 0,
+        total: 0,
+        count: 0,
+      }; // Get { qty: 10, price: 150 }
 
       // Go DIRECTLY to the same Symbol in your Dividend Map
       // No searching required!
@@ -90,13 +109,34 @@ async function loadDividendHistory() {
 
     tableData = sorted;
 
-    console.log("tableData", tableData);
+    //console.log("tableData", tableData);
     renderDividendTable();
   } catch (err) {
     document.getElementById("status").innerText =
       "Error loading dividend history";
     console.error(err);
   }
+}
+
+function isYesterday(dateToCheck) {
+  const day = Number(dateToCheck.substring(8, 10));
+  const d = new Date(dateToCheck);
+  const now = new Date();
+
+  return (
+    day === now.getDate() - 1 &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear()
+  );
+}
+
+function isDateInThisMonth(dateToCheck) {
+  const d = new Date(dateToCheck);
+  const now = new Date();
+
+  return (
+    d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+  );
 }
 
 function renderDividendTable() {
@@ -112,8 +152,12 @@ function renderDividendTable() {
       return a[0].localeCompare(b[0]) * dir;
     }
 
-    if (currentSort.column === "payments") {
-      return (a[1].count - b[1].count) * dir;
+    if (currentSort.column === "yesterday") {
+      return (a[1].yesterday - b[1].yesterday) * dir;
+    }
+
+    if (currentSort.column === "monthly") {
+      return (a[1].monthly - b[1].monthly) * dir;
     }
 
     if (currentSort.column === "total") {
@@ -135,7 +179,10 @@ function renderDividendTable() {
     }
   });
 
-  let grandTotal = 0;
+  let allTimeTotal = 0;
+  let yesterdayTotal = 0;
+  let monthlyTotal = 0;
+  let invested = 0;
 
   const table = document.createElement("table");
 
@@ -144,7 +191,8 @@ function renderDividendTable() {
   thead.innerHTML = `
     <tr>
       <th data-sort="symbol">Symbol</th>
-      <th data-sort="payments">Payments</th>
+      <th data-sort="yesterday">Yesterday</th>
+      <th data-sort="monthly">Month</th>
       <th data-sort="total">Total ($)</th>
       <th data-sort="qty">Quantity</th>
       <th data-sort="price">Price ($)</th>
@@ -163,7 +211,8 @@ function renderDividendTable() {
 
     row.innerHTML = `
       <td data-label="Symbol">${symbol}</td>
-      <td data-label="Payments">${stats.count}</td>
+      <td data-label="Total ($)">${stats.yesterday.toFixed(2)}</td>
+      <td data-label="Total ($)">${stats.monthly.toFixed(2)}</td>
       <td data-label="Total ($)">${stats.total.toFixed(2)}</td>
       <td data-label="Quantity">${stats.qty.toFixed(0)}</td>
       <td data-label="Price ($)">${stats.lastPrice.toFixed(2)}</td>
@@ -172,19 +221,29 @@ function renderDividendTable() {
 
     tbody.appendChild(row);
 
-    grandTotal += stats.total;
+    yesterdayTotal += stats.yesterday;
+    monthlyTotal += stats.monthly;
+    allTimeTotal += stats.total;
+    invested += stats.qty * stats.lastPrice;
   });
 
   table.appendChild(tbody);
 
+  const tfoot = document.createElement("tfoot");
+
+  tfoot.innerHTML = `
+    <tr>
+      <th>Totals</th>
+      <th>$${Math.floor(yesterdayTotal).toLocaleString()}</th>
+      <th>$${Math.floor(monthlyTotal).toLocaleString()}</th>
+      <th>$${Math.floor(allTimeTotal).toLocaleString()}</th>
+      <th> - </th>
+      <th> - </th>
+      <th>$${Math.floor(invested).toLocaleString()}</th>
+    </tr>
+  `;
+  table.appendChild(tfoot);
   container.appendChild(table);
-
-  const totalDiv = document.createElement("div");
-
-  totalDiv.className = "total";
-  totalDiv.innerText = `Grand Total Dividends: $${grandTotal.toFixed(2)}`;
-
-  container.appendChild(totalDiv);
 
   container.querySelectorAll("th").forEach((header) => {
     header.addEventListener("click", () => {
